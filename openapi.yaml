@@ -88,7 +88,7 @@ paths:
           description: Successful response
         
           
-  /users/feature-flags/:
+  /users/{userId}/feature-flags/:
     get: 
       tags:
         - featureFlags-User
@@ -157,7 +157,38 @@ paths:
           description: Created successful
         '405':
           description: Invalid input
+    patch:
+      tags:
+        - featureFlags-User
+      summary: To update feature flag for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Id of user
+          schema: 
+            type: 
+              string
+        - name: flagId
+          in: path
+          required: true
+          description: Id of the flag
+          schema: 
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/ApiRequests/featureflag-user-update'
+
+      responses:
+        '200':
+          description: successful response
+        '405':
+          description: Invalid input
        
+    
 
 ApiResponses:
   feature-flag:
@@ -169,6 +200,8 @@ ApiResponses:
         type: string
       flagDescription:
         type: string
+      deactivated:
+        type: boolean
         
   User-feature-flag-response:
     type: object
@@ -202,6 +235,8 @@ ApiResponses:
           type: string
         flagDescription:
           type: string
+        deactivated:
+          type: boolean
 
 ApiRequests:
   feature-flag:
@@ -220,9 +255,14 @@ ApiRequests:
         type: string
       flagName:
         type: string
-      deactivate:
+      deactivated:
         type: boolean
       flagDescription:
         type: string
+  
+  featureflag-user-update:
+    type: object
+    properties:
+      enabled:  
+        type: boolean
     
-        
