@@ -1,0 +1,17 @@
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  HealthCheckFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: health-check/
+      Handler: health-check
+      Runtime: go1.x
+      Architectures:
+        - x86_64  
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /healthCheck
+            Method: GET
