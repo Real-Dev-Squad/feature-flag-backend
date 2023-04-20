@@ -13,5 +13,5 @@ Resources:
         CatchAll:
           Type: Api
           Properties:
-            Path: /healthCheck
+            Path: /health-check
             Method: GET
