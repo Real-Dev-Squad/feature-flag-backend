@@ -38,7 +38,7 @@ func createDynamoDB() *dynamodb.DynamoDB {
 	})
 
 	if err != nil {
-		log.Fatal("Error while creating a session")
+		log.Println("Error while creating a session")
 	}
 	db = dynamodb.New(sess)
 	return db
