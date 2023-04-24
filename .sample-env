@@ -1,0 +1,6 @@
+FEATURE_FLAG_TABLE_NAME= Your feature flag table name
+ENVIRONMENT= DEVELOPMENT
+AWS_REGION= Your aws region
+FEATURE_FLAG_USER_MAPPING_TABLE_NAME= Your feature flag user mapping table name
+AWS_ACCESS_KEY= Your aws access key
+AWS_SECRET_KEY= Your aws secret key
