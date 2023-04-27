@@ -2,14 +2,23 @@ package main
 
 import (
 	"log"
+	"os"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
-
 )
 
+
+var Constants map[string]string  = map[string]string {
+	"ENV" : 				"ENVIRONMENT",
+	"ENV_DEVELOPMENT": 		"DEVELOPMENT",
+	"ENV_PRODUCTION":		"PRODUCTION",
+	"REGION": 				"AWS_REGION",
+	"ACCESS_KEY":			"AWS_ACCESS_KEY",
+	"SECRET_KEY":			"AWS_SECRET_KEY",
+}
 
 type AWSCredentials struct{
 	AccessKey string
@@ -19,12 +28,24 @@ type AWSCredentials struct{
 
 var db *dynamodb.DynamoDB
 
+func init(){
+
+	env, ok := os.LookupEnv(Constants["ENV"])
+	if !ok {
+		// load the env values using the `setUpEnv` function.
+		utils.setUpEnv()
+	} 
+	if (env == Constants["ENV_PRODUCTION"]){
+		// to be written
+	}
+}
+
 func getAWSCredentials() *AWSCredentials{
 
 	awsCredentials := new(AWSCredentials)
-	awsCredentials.Region = utils.GoDotEnvVariable("AWS_REGION")
-	awsCredentials.AccessKey = utils.GoDotEnvVariable(("AWS_ACCESS_KEY"))
-	awsCredentials.SecretKey = utils.GoDotEnvVariable(("AWS_SECRET_KEY"))
+	awsCredentials.Region = os.Getenv(Constants["REGION"])
+	awsCredentials.AccessKey = os.Getenv(Constants["ACCES_KEY"])
+	awsCredentials.SecretKey = os.Getenv(Constants["SECRET_KEY"])
 	
 	return awsCredentials
 }
@@ -38,7 +59,7 @@ func createDynamoDB() *dynamodb.DynamoDB {
 	})
 
 	if err != nil {
-		log.Println("Error while creating a session")
+		log.Panic("Error while creating a session")
 	}
 	db = dynamodb.New(sess)
 	return db

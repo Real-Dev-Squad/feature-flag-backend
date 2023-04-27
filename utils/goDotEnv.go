@@ -2,18 +2,15 @@ package utils
 
 import (
 	"log"
-	"os"
-
 	"github.com/joho/godotenv"
 )
 
-func GoDotEnvVariable(key string) string {
+func setUpEnv() {
 
-	err := godotenv.Load(".env")
+	err := godotenv.Load("../.env")
 
 	if err != nil {
-		log.Println("Error loading .env file")
+		log.Panic("Error loading .env file")
 	}
-
-	return os.Getenv(key)
+	log.Println("loaded env var")
 }
