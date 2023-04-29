@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"log"
 	"os"
+	"fmt"
 )
 
 var Constants map[string]string = map[string]string{
