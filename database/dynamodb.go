@@ -32,7 +32,7 @@ func init() {
 	env, found := os.LookupEnv(Constants["ENV"])
 	if !found {
 		// load the env values using the `setUpEnv` function.
-		utils.setUpEnv()
+		utils.SetUpEnv()
 	}
 
 }
