@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
@@ -48,7 +48,7 @@ func getAWSCredentials() *AWSCredentials {
 	return awsCredentials
 }
 
-func createDynamoDB() *dynamodb.DynamoDB {
+func CreateDynamoDB() *dynamodb.DynamoDB {
 	awsCredentials := getAWSCredentials()
 
 	defer func() {
