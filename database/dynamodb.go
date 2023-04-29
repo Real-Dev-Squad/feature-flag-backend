@@ -13,8 +13,8 @@ import (
 
 var Constants map[string]string  = map[string]string {
 	"ENV" : 				"ENVIRONMENT",
-	"ENV_DEVELOPMENT": 		"DEVELOPMENT",
-	"ENV_PRODUCTION":		"PRODUCTION",
+	"DEV": 					"DEVELOPMENT",
+	"PROD":					"PRODUCTION",
 	"REGION": 				"AWS_REGION",
 	"ACCESS_KEY":			"AWS_ACCESS_KEY",
 	"SECRET_KEY":			"AWS_SECRET_KEY",
@@ -30,14 +30,12 @@ var db *dynamodb.DynamoDB
 
 func init(){
 
-	env, ok := os.LookupEnv(Constants["ENV"])
-	if !ok {
+	env, found := os.LookupEnv(Constants["ENV"])
+	if !found {
 		// load the env values using the `setUpEnv` function.
 		utils.setUpEnv()
 	} 
-	if (env == Constants["ENV_PRODUCTION"]){
-		// to be written
-	}
+	
 }
 
 func getAWSCredentials() *AWSCredentials{
