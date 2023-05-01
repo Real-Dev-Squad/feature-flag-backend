@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"log"
 	"github.com/joho/godotenv"
+	"log"
 )
 
 func SetUpEnv() {
