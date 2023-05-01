@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -8,17 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"log"
 	"os"
-	"fmt"
 )
-
-var Constants map[string]string = map[string]string{
-	"ENV":        "ENVIRONMENT",
-	"DEV":        "DEVELOPMENT",
-	"PROD":       "PRODUCTION",
-	"REGION":     "AWS_REGION",
-	"ACCESS_KEY": "AWS_ACCESS_KEY",
-	"SECRET_KEY": "AWS_SECRET_KEY",
-}
 
 type AWSCredentials struct {
 	AccessKey string
@@ -26,37 +17,63 @@ type AWSCredentials struct {
 	Region    string
 }
 
+type GetItemResult struct {
+	Item map[string]*dynamodb.AttributeValue
+}
+
 var db *dynamodb.DynamoDB
 
 func init() {
-
-	env, found := os.LookupEnv(Constants["ENV"])
-	if !found {
-		// load the env values using the `setUpEnv` function.
-		utils.SetUpEnv()
-	}
-
-}
-
-func getAWSCredentials() *AWSCredentials {
-
-	awsCredentials := new(AWSCredentials)
-	awsCredentials.Region = os.Getenv(Constants["REGION"])
-	awsCredentials.AccessKey = os.Getenv(Constants["ACCES_KEY"])
-	awsCredentials.SecretKey = os.Getenv(Constants["SECRET_KEY"])
-
-	return awsCredentials
-}
-
-func CreateDynamoDB() *dynamodb.DynamoDB {
-	awsCredentials := getAWSCredentials()
-
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println(err)
 		}
 	}()
 
+	env := os.Getenv(utils.Constants["ENV"])
+	if env == utils.Constants["PROD"] {
+		log.Println(env, " is the env")
+	}
+
+}
+
+func getAWSCredentials() *AWSCredentials {
+
+	var found bool
+	awsCredentials := new(AWSCredentials)
+
+	awsCredentials.Region, found = os.LookupEnv(utils.Constants["REGION"])
+	if !found {
+		log.Panic("AWS Region not found ")
+	}
+	awsCredentials.AccessKey, found = os.LookupEnv(utils.Constants["ACCESS_KEY"])
+	if !found {
+		log.Panic("AWS access key not found")
+	}
+	awsCredentials.SecretKey, found = os.LookupEnv(utils.Constants["SECRET_KEY"])
+	if !found {
+		log.Panic("AWS secret key not found")
+	}
+
+	return awsCredentials
+}
+
+func GetFeatureFlagTableName() string {
+	tableName, found := os.LookupEnv(utils.Constants["FF_TABLE_NAME"])
+	if !found {
+		log.Panic("Feature Flag table name is not set in env.")
+	}
+	return tableName
+}
+
+func CreateDynamoDB() *dynamodb.DynamoDB {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	awsCredentials := getAWSCredentials()
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsCredentials.Region),
 		Credentials: credentials.NewStaticCredentials(awsCredentials.AccessKey, awsCredentials.SecretKey, ""),
