@@ -12,6 +12,3 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 )
-
-replace github.com/Real-Dev-Squad/feature-flag-backend => ../ 
-//TODO remove this above replace stmt
