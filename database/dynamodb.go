@@ -19,10 +19,6 @@ type AWSCredentials struct {
 	Region    string
 }
 
-type GetItemResult struct {
-	Item map[string]*dynamodb.AttributeValue
-}
-
 var db *dynamodb.DynamoDB
 
 func init() {
