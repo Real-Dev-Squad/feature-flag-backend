@@ -1,65 +1,51 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"log"
+	"net/http"
 )
-
-func processGetById(id string) (*models.FeatureFlag, error) {
-
-	db := database.CreateDynamoDB()
-
-	input := &dynamodb.GetItemInput{
-		TableName: aws.String(database.GetFeatureFlagTableName()),
-		Key: map[string]*dynamodb.AttributeValue{
-			"Id": { //TODO remove hardcoded value
-				S: aws.String(id),
-			},
-		},
-	}
-
-	result, err := db.GetItem(input)
-	if err != nil {
-		return nil, err
-	}
-
-	featureFlag := new(models.FeatureFlag)
-	err = dynamodbattribute.UnmarshalMap(result.Item, &featureFlag)
-
-	if err != nil {
-		return nil, err
-	}
-	return featureFlag, nil
-}
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	id, found := req.PathParameters["flagId"]
+
 	if !found {
-		log.Panic("Id not passed")
+		log.Println("flagId not passed")
+		utils.ClientError(http.StatusBadRequest, "Flag ID not passed in request")
 	}
-	item, err := processGetById(id)
+	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.FeatureFlagAttributes["Id"],id)
 	if err != nil {
 		utils.ServerError(err)
 	}
-	fmt.Println(item)
-	return events.APIGatewayProxyResponse{}, nil
 
+	log.Println(featureFlag, " is the feature flag")
+	if featureFlag == nil {
+		log.Println("Feature Flag not found")
+		return utils.ClientError(http.StatusNotFound, "Feature flag not found")
+		
+	}
+
+	//marshal the item to JSON
+	jsonResponse, err := json.Marshal(featureFlag)
+	if err != nil {
+		log.Println("Error converting FeatureFlag to JSON")
+		return utils.ServerError(err)
+	}
+
+	response := events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: string(jsonResponse),
+	}
+	return response, nil
 }
 
 func main() {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
 	lambda.Start(handler)
 }

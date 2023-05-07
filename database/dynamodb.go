@@ -3,10 +3,12 @@ package database
 import (
 	"fmt"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
+	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"log"
 	"os"
 )
@@ -84,4 +86,38 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	}
 	db = dynamodb.New(sess)
 	return db
+}
+
+func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string) (*models.FeatureFlag, error) {
+
+	db := CreateDynamoDB()
+
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(GetFeatureFlagTableName()),
+		Key: map[string]*dynamodb.AttributeValue{
+			attributeName: { 
+				S: aws.String(attributeValue),
+			},
+		},
+	}
+
+	result, err := db.GetItem(input)
+
+	if err != nil {
+		utils.DdbError(err)
+		return nil, err
+	}
+
+	if len(result.Item) == 0{
+		return nil, nil
+	}
+
+	featureFlag := new(models.FeatureFlag)
+	err = dynamodbattribute.UnmarshalMap(result.Item, &featureFlag)
+
+	if err != nil {
+		log.Println(err ," is the error while converting to ddb object")
+		return nil, err
+	}
+	return featureFlag, nil
 }
