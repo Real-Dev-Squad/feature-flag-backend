@@ -22,13 +22,13 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		utils.ServerError(err)
 	}
 
-	log.Println(featureFlag, " is the feature flag")
 	if featureFlag == nil {
 		log.Println("Feature Flag not found")
 		return utils.ClientError(http.StatusNotFound, "Feature flag not found")
 		
 	}
-
+	log.Println(featureFlag, " is the feature flag")
+	
 	//marshal the item to JSON
 	jsonResponse, err := json.Marshal(featureFlag)
 	if err != nil {
