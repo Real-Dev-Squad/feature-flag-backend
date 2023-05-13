@@ -6,8 +6,8 @@ Globals:
       Variables:
         FEATURE_FLAG_TABLE_NAME: FeatureFlag
         AWS_REGION: us-east-1
-        AWS_ACCESS_KEY: AKIAXJ4VO4GSJ3OQGSO2
-        AWS_SECRET_KEY: Bk5EOzQTTciS2rGc320GmDk+KBzFQzMX3IH7ZY2s
+        AWS_ACCESS_KEY: your access key
+        AWS_SECRET_KEY: your secret key
         FEATURE_FLAG_USER_MAPPING_TABLE_NAME: Your feature flag user mapping table name
         ENVIRONMENT: PRODUCTION
 
@@ -41,7 +41,7 @@ Resources:
             Path: /feature-flags/{flagId}
             Method: GET 
   CreateFeatureFlagFunction:
-    Type: 'AWS:Serverless::Function'
+    Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: createFeatureFlag/
       Handler: createFeatureFlag
@@ -55,7 +55,7 @@ Resources:
             Path: /feature-flags/
             Method: POST
   UpdateFeatureFlagFunction:
-    Type: 'AWS:Serverless::Function'
+    Type: 'AWS::Serverless::Function'
     Properties: 
       CodeUri: updateFeatureFlag/
       Handler: updateFeatureFlag
