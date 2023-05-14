@@ -28,7 +28,6 @@ func init() {
 	}()
 
 	env := os.Getenv(utils.ENV)
-	fmt.Print(env)
 	if env == utils.PROD {
 		log.Println(env, " is the env")
 	}

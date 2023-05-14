@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -15,64 +16,56 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-func processGetById(userId string, flagId string) (*models.FeatureFlagUserMapping, error) {
+func processGetById(userId string) ([]models.FeatureFlagUserMapping, error) {
 
 	db := database.CreateDynamoDB()
 
-	input := &dynamodb.GetItemInput{
-		TableName: aws.String(database.GetTableName(utils.FFUM_TABLE_NAME)),
-		Key: map[string]*dynamodb.AttributeValue{
-			utils.UserId: {
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(database.GetTableName(utils.FFUM_TABLE_NAME)),
+		KeyConditionExpression: aws.String(fmt.Sprintf("%v = :uid", utils.UserId)),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":uid": {
 				S: aws.String(userId),
-			},
-			utils.FlagId: {
-				S: aws.String(flagId),
 			},
 		},
 	}
 
-	result, err := db.GetItem(input)
+	result, err := db.Query(input)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	if result.Item == nil {
+	if len(result.Items) == 0 {
 		return nil, nil
 	}
-	featureFlagUserMapping := new(models.FeatureFlagUserMapping)
-	err = dynamodbattribute.UnmarshalMap(result.Item, &featureFlagUserMapping)
 
+	var listOfFeatureFlagUserMapping []models.FeatureFlagUserMapping
+
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &listOfFeatureFlagUserMapping)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	return featureFlagUserMapping, nil
+
+	return listOfFeatureFlagUserMapping, nil
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	userId, found := req.PathParameters["userId"]
 	if !found {
 		log.Panic("User ID not passed")
-		utils.ClientError(http.StatusBadRequest, "User ID not passed in request")
 	}
-
-	flagId, found := req.PathParameters["flagId"]
-	if !found {
-		log.Panic("Flag ID not passed")
-		utils.ClientError(http.StatusBadRequest, "Flag ID not passed in request")
-	}
-
-	result, err := processGetById(userId, flagId)
+	result, err := processGetById(userId)
 	if err != nil {
 		utils.ServerError(err)
 	}
 	if result == nil {
-		log.Println("User feature flag not found")
-		return utils.ClientError(http.StatusNotFound, "User feature flag not found")
+		log.Println("User feature flags not found")
+		return utils.ClientError(http.StatusNotFound, "User feature flags not found")
 	}
 	resultJson, err := json.Marshal(result)
 	if err != nil {
-		log.Println("Error converting featureFlagUserMapping to JSON")
+		log.Println("Error converting listOfFeatureFlagUserMapping to JSON")
 		return utils.ServerError(err)
 	}
 

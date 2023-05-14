@@ -40,3 +40,17 @@ Resources:
           Properties: 
             Path: /users/{userId}/feature-flags/{flagId}
             Method: GET
+  GetUserFeatureFlagsFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: getUserFeatureFlags/
+      Handler: getUserFeatureFlags
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events:
+        CatchAll:
+          Type: Api
+          Properties: 
+            Path: /users/{userId}/feature-flags
+            Method: GET
