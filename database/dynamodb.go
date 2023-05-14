@@ -28,10 +28,10 @@ func init() {
 		}
 	}()
 
-	env := os.Getenv(utils.Constants["ENV"])
-	if env == utils.Constants["PROD"] {
+	env := os.Getenv(utils.ENV)
+	if env == utils.PROD {
 		log.Println(env, " is the env")
-	}
+	} 
 
 }
 
@@ -40,15 +40,15 @@ func getAWSCredentials() *AWSCredentials {
 	var found bool
 	awsCredentials := new(AWSCredentials)
 
-	awsCredentials.Region, found = os.LookupEnv(utils.Constants["REGION"])
+	awsCredentials.Region, found = os.LookupEnv(utils.REGION)
 	if !found {
 		log.Panic("AWS Region not found ")
 	}
-	awsCredentials.AccessKey, found = os.LookupEnv(utils.Constants["ACCESS_KEY"])
+	awsCredentials.AccessKey, found = os.LookupEnv(utils.ACCESS_KEY)
 	if !found {
 		log.Panic("AWS access key not found")
 	}
-	awsCredentials.SecretKey, found = os.LookupEnv(utils.Constants["SECRET_KEY"])
+	awsCredentials.SecretKey, found = os.LookupEnv(utils.SECRET_KEY)
 	if !found {
 		log.Panic("AWS secret key not found")
 	}
@@ -57,7 +57,7 @@ func getAWSCredentials() *AWSCredentials {
 }
 
 func GetFeatureFlagTableName() string {
-	tableName, found := os.LookupEnv(utils.Constants["FF_TABLE_NAME"])
+	tableName, found := os.LookupEnv(utils.FF_TABLE_NAME)
 	if !found {
 		log.Panic("Feature Flag table name is not set in env.")
 	}
