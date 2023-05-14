@@ -17,7 +17,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		log.Println("flagId not passed")
 		utils.ClientError(http.StatusBadRequest, "Flag ID not passed in request")
 	}
-	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.FeatureFlagAttributes["Id"],id)
+	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.Id, id)
 	if err != nil {
 		utils.ServerError(err)
 	}
