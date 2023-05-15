@@ -54,10 +54,11 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	userId, found := req.PathParameters["userId"]
 	if !found {
 		log.Panic("User ID not passed")
+		return utils.ClientError(http.StatusBadRequest, "User ID not passed in request")
 	}
 	result, err := processGetById(userId)
 	if err != nil {
-		utils.ServerError(err)
+		return utils.ServerError(err)
 	}
 	if result == nil {
 		log.Println("User feature flags not found")
