@@ -13,13 +13,10 @@ import (
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	id, found := req.PathParameters["flagId"]
 
-	if !found {
-		log.Println("flagId not passed")
-		utils.ClientError(http.StatusBadRequest, "Flag ID not passed in request")
-	}
+	
 	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.Id, id)
 	if err != nil {
-		utils.ServerError(err)
+		return utils.ServerError(err)
 	}
 
 	if featureFlag == nil {

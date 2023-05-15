@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"log"
@@ -26,19 +25,19 @@ func ClientError(status int, body string) (events.APIGatewayProxyResponse, error
 	return resp, nil
 }
 func ServerError(err error) (events.APIGatewayProxyResponse, error) {
-	errMsg := ""
-	if err != nil {
-		errMsg = err.Error()
-	}
+	errMsg := "Something went wrong, please try again."
+	
+	//logging for internal use
+	log.Printf("Internal Server Error: %v", err)
 	return events.APIGatewayProxyResponse{
 		Body:       errMsg,
 		StatusCode: http.StatusInternalServerError,
-	}, fmt.Errorf("Internal server error: %v", err)
+	}, nil
 }
 
 func DdbError(err error) {
 	if aerr, ok := err.(awserr.Error); ok {
-		log.Printf("Error code %d, Error message %s", aerr.Code(), aerr.Error())
+		log.Printf("Error code %s, Error message %s", aerr.Code(), aerr.Error())
 	} else {
 		log.Println(err.Error())
 	}
