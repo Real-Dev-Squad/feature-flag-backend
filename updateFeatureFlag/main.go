@@ -115,8 +115,8 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		featureFlag.Description = updateFeatureFlagRequest.Description
 	}
 
-	if updateFeatureFlagRequest.Status != "" {
-		featureFlag.Status = updateFeatureFlagRequest.Status
+	if updateFeatureFlagRequest.FlagName != "" {
+		featureFlag.Name = updateFeatureFlagRequest.FlagName
 	}
 
 	//updating the lastUpdatedBy and lastUpdatedAt

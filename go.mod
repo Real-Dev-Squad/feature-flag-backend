@@ -8,4 +8,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 )
 
-require github.com/jmespath/go-jmespath v0.4.0 // indirect
+require (
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/stretchr/testify v1.8.2 // indirect
+)
