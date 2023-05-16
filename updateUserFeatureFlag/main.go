@@ -117,7 +117,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			if aerr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
-				return utils.ClientError(http.StatusNotFound, "User Id or Flag Id does not exist")
+				return utils.ClientError(http.StatusNotFound, "Mapping of User Id and Flag Id does not exist")
 			}
 		}
 		return utils.ServerError(err)
