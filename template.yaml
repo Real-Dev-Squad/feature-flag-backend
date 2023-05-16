@@ -15,3 +15,17 @@ Resources:
           Properties:
             Path: /health-check
             Method: GET
+  CreateUserFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: createUserFeatureFlag/
+      Handler: createUserFeatureFlag
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events:
+        CatchAll:
+          Type: Api
+          Properties: 
+            Path: /users/{userId}/feature-flags/{flagId}
+            Method: POST

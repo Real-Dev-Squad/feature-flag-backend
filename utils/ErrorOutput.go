@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -28,15 +27,16 @@ func ClientError(status int, body string) (events.APIGatewayProxyResponse, error
 
 	return resp, nil
 }
+
 func ServerError(err error) (events.APIGatewayProxyResponse, error) {
-	errMsg := ""
-	if err != nil {
-		errMsg = err.Error()
-	}
+	errorMessage := "Something went wrong, please try again."
+
+	//logging for internal use
+	log.Printf("Internal Server Error: %v", err)
 	return events.APIGatewayProxyResponse{
-		Body:       errMsg,
+		Body:       errorMessage,
 		StatusCode: http.StatusInternalServerError,
-	}, fmt.Errorf("Internal server error: %v", err)
+	}, nil
 }
 
 func DdbError(err error) {
