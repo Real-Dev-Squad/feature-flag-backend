@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
@@ -12,6 +13,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
@@ -48,17 +50,8 @@ func processPutById(userId string, flagId string, featureFlagUserMapping models.
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	userId, found := req.PathParameters["userId"]
-	if !found {
-		log.Panic("User ID not passed")
-		return utils.ClientError(http.StatusBadRequest, "User ID not passed in request")
-	}
-
-	flagId, found := req.PathParameters["flagId"]
-	if !found {
-		log.Panic("Flag ID not passed")
-		return utils.ClientError(http.StatusBadRequest, "Flag ID not passed in request")
-	}
+	userId := req.PathParameters["userId"]
+	flagId := req.PathParameters["flagId"]
 
 	var requestBody models.CreateUserMapping
 	err := json.Unmarshal([]byte(req.Body), &requestBody)
@@ -94,13 +87,18 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	featureFlagUserMapping := models.FeatureFlagUserMapping{
 		UserId:    userId,
 		FlagId:    flagId,
-		Status:    requestBody.Status,
+		Status:    strings.ToUpper(requestBody.Status),
 		CreatedAt: time.Now().Unix(),
 		CreatedBy: requestBody.UserId,
 	}
 
 	result, err := processPutById(userId, flagId, featureFlagUserMapping)
 	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
+				return utils.ClientError(http.StatusNotFound, "Mapping of User Id and Flag Id already exists")
+			}
+		}
 		return utils.ServerError(err)
 	}
 	resultJson, err := json.Marshal(result)
