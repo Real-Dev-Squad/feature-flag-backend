@@ -64,12 +64,6 @@ func GetTableName(envVarName string) string {
 }
 
 func CreateDynamoDB() *dynamodb.DynamoDB {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
 	awsCredentials := getAWSCredentials()
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsCredentials.Region),
