@@ -5,6 +5,7 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -36,26 +38,66 @@ func handleValidationError(err error) []utils.ValidationError {
 }
 
 // creating instance of databae
-func updateFeatureFlag(featureFlag *models.FeatureFlag) (events.APIGatewayProxyResponse, error) {
+func updateFeatureFlag(updateFeatureFlagRequest models.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
-	item, err := dynamodbattribute.MarshalMap(featureFlag)
-	if err != nil {
-		return utils.ServerError(err)
-	}
-
-	input := &dynamodb.PutItemInput{
-		Item:      item,
+	input := &dynamodb.UpdateItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"Id": {
+				S: aws.String(updateFeatureFlagRequest.Id),
+			},
+		},
 		TableName: aws.String(database.GetFeatureFlagTableName()),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":status": {
+				S: aws.String(updateFeatureFlagRequest.Status),
+			},
+			":updatedAt": {
+				N: aws.String(strconv.Itoa(int(time.Now().Unix()))),
+			},
+			":updatedBy": {
+				S: aws.String(updateFeatureFlagRequest.UserId),
+			},
+		},
+		UpdateExpression: aws.String("set #status = :status, #updatedAt = :updatedAt, #updatedBy = :updatedBy"),
+		ExpressionAttributeNames: map[string]*string{
+			"#status":    aws.String("status"),
+			"#updatedAt": aws.String("updatedAt"),
+			"#updatedBy": aws.String("updatedBy"),
+		},
+		ReturnValues:        aws.String("ALL_NEW"),
+		ConditionExpression: aws.String("attribute_exists(Id)"),
 	}
 
-	_, err = db.PutItem(input)
+	result, err := db.UpdateItem(input)
+
+	//throw the response on conditional check failed exception
 	if err != nil {
-		return utils.ServerError(err)
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
+				return utils.ClientError(http.StatusNotFound, "Feature flag with given flagId doesn't exists")
+			}
+		}
+		utils.ServerError(err)
 	}
+
+	featureFlag := new(models.FeatureFlag)
+	err = dynamodbattribute.UnmarshalMap(result.Attributes, &featureFlag)
+
+	if err != nil {
+		log.Println()
+		utils.ServerError(err)
+	}
+
+	//marshal to JSON
+	resultJson, err := json.Marshal(featureFlag)
+	if err != nil {
+		log.Println("Unable to marshal to JSON", featureFlag.Id)
+	}
+
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
-		Body:       "Feature flag updated sucessfully",
+		Body:       string(resultJson),
 	}, nil
 }
 
@@ -77,7 +119,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		//TODO: use the errs response and pass it to the user instead of hardcoded message.
 		if len(errs) > 0 {
 			return events.APIGatewayProxyResponse{
-				Body:       "Check the request body passed name, description, flagId and userId are required.",
+				Body:       "Check the request body passed status, flagId and userId are required.",
 				StatusCode: http.StatusBadRequest,
 			}, nil
 		}
@@ -101,34 +143,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}, nil
 	}
 
-	//updating feature flag
-	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.Id, updateFeatureFlagRequest.Id)
-	if err != nil {
-		return utils.ServerError(err)
-	}
-
-	if featureFlag == nil {
-		return utils.ClientError(http.StatusNotFound, "Feature flag not found")
-	}
-
-	if updateFeatureFlagRequest.Description != "" {
-		featureFlag.Description = updateFeatureFlagRequest.Description
-	}
-
-	if updateFeatureFlagRequest.FlagName != "" {
-		featureFlag.Name = updateFeatureFlagRequest.FlagName
-	}
-
-	//updating the lastUpdatedBy and lastUpdatedAt
-	featureFlag.UpdatedAt = time.Now().Unix()
-	featureFlag.UpdatedBy = updateFeatureFlagRequest.UserId
-
-	//update feature flag
-	response, err := updateFeatureFlag(featureFlag)
-	if err != nil {
-		return utils.ServerError(err)
-	}
-	return response, nil
+	return updateFeatureFlag(updateFeatureFlagRequest)
 }
 
 func main() {

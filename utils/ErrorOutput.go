@@ -24,7 +24,7 @@ func ClientError(status int, body string) (events.APIGatewayProxyResponse, error
 
 	return resp, nil
 }
-func ServerError(err error) (events.APIGatewayProxyResponse, error) {
+func ServerError(err error) (events.APIGatewayProxyResponse, error) { //TODO change this function to take body and statusCode.
 	errMsg := "Something went wrong, please try again."
 	
 	//logging for internal use
