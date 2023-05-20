@@ -12,21 +12,29 @@ type ValidationError struct {
 	Error string
 }
 
-func ClientError(status int, body string) (events.APIGatewayProxyResponse, error) {
+func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, error) {
+	//check if the status sent is in the range of 400 and 500.
+	if statusCode >= http.StatusBadRequest && statusCode < http.StatusInternalServerError {
+		log.Printf("Wrong Status code used: %d for Client Error, allowed range is %d to %d", statusCode, http.StatusBadRequest, http.StatusInternalServerError)
 
-	resp := events.APIGatewayProxyResponse{
+		return events.APIGatewayProxyResponse{
+			Body:       "Something went wrong, please try again.",
+			StatusCode: http.StatusInternalServerError,
+		}, nil
+	}
+
+	//return the response to the user
+	return events.APIGatewayProxyResponse{
 		Body:       body,
-		StatusCode: status,
+		StatusCode: statusCode,
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
-	}
-
-	return resp, nil
+	}, nil
 }
-func ServerError(err error) (events.APIGatewayProxyResponse, error) { //TODO change this function to take body and statusCode.
+func ServerError(err error) (events.APIGatewayProxyResponse, error) {
 	errMsg := "Something went wrong, please try again."
-	
+
 	//logging for internal use
 	log.Printf("Internal Server Error: %v", err)
 	return events.APIGatewayProxyResponse{
