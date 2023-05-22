@@ -22,3 +22,10 @@ type CreateFeatureFlagRequest struct {
 	Description string `json:"Description" validate:"required"`
 	UserId      string `json:"UserId" validate:"required"`
 }
+
+type FeatureFlagResponse struct{
+	Id string `json:"Id"`
+	Name string `json:"Name"`
+	Description string `json:"Description"`
+	Status string `json:"Status"`
+}
