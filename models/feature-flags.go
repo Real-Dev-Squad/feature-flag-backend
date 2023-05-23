@@ -13,9 +13,7 @@ type FeatureFlag struct {
 
 type UpdateFeatureFlagRequest struct {
 	Id          string `json:"Id" validate:"required"`
-	FlagName    string `json:"Name"`
 	Status      string `json:"Status" validate:"required"`
-	Description string `json:"Description"`
 	UserId      string `json:"UserId" validate:"required"`
 }
 
@@ -23,4 +21,11 @@ type CreateFeatureFlagRequest struct {
 	FlagName    string `json:"Name" validate:"required"`
 	Description string `json:"Description" validate:"required"`
 	UserId      string `json:"UserId" validate:"required"`
+}
+
+type FeatureFlagResponse struct{
+	Id string `json:"Id"`
+	Name string `json:"Name"`
+	Description string `json:"Description"`
+	Status string `json:"Status"`
 }

@@ -11,8 +11,7 @@ import (
 )
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	id, found := req.PathParameters["flagId"]
-
+	id, _ := req.PathParameters["flagId"]
 	
 	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.Id, id)
 	if err != nil {
