@@ -84,14 +84,14 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest models.UpdateFeat
 	err = dynamodbattribute.UnmarshalMap(result.Attributes, &featureFlag)
 
 	if err != nil {
-		log.Println("Error is %v", err)
+		log.Printf("Error is %v", err)
 		utils.ServerError(err)
 	}
 
 	//marshal to JSON
 	resultJson, err := json.Marshal(featureFlag)
 	if err != nil {
-		log.Println("Unable to marshal to JSON %v", err)
+		log.Printf("Unable to marshal to JSON %v", err)
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -109,7 +109,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	bytes := []byte(request.Body)
 	err := json.Unmarshal(bytes, &updateFeatureFlagRequest)
 	if err != nil {
-		log.Println("Error in reading input %v", err)
+		log.Printf("Error in reading input %v", err)
 		return utils.ClientError(http.StatusBadRequest, "Error in reading input")
 	}
 
