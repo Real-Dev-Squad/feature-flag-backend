@@ -5,10 +5,10 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
@@ -37,13 +37,13 @@ func handleValidationError(err error) []utils.ValidationError {
 	return errors
 }
 
-func updateFeatureFlag(updateFeatureFlagRequest models.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
+func updateFeatureFlag(flagId string, updateFeatureFlagRequest models.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"Id": {
-				S: aws.String(updateFeatureFlagRequest.Id),
+				S: aws.String(flagId),
 			},
 		},
 		TableName: aws.String(database.GetFeatureFlagTableName()),
@@ -101,6 +101,8 @@ func updateFeatureFlag(updateFeatureFlagRequest models.UpdateFeatureFlagRequest)
 }
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	id, _ := request.PathParameters["flagId"]
+
 	updateFeatureFlagRequest := models.UpdateFeatureFlagRequest{}
 
 	//marshal to updateFeatureFlag
@@ -142,7 +144,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}, nil
 	}
 
-	return updateFeatureFlag(updateFeatureFlagRequest)
+	return updateFeatureFlag(id, updateFeatureFlagRequest)
 }
 
 func main() {

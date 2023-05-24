@@ -27,7 +27,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	
 	jsonResponse, err := json.Marshal(featureFlag)
 	if err != nil {
-		log.Println("Error converting FeatureFlag to JSON %v", err)
+		log.Printf("Error converting FeatureFlag to JSON %v", err)
 		return utils.ServerError(err)
 	}
 
