@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/aws/aws-sdk-go/aws"
@@ -77,7 +76,7 @@ func GetFeatureFlagTableName() string {
 func CreateDynamoDB() *dynamodb.DynamoDB {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	}()
 
@@ -88,7 +87,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	})
 
 	if err != nil {
-		log.Println("Error creating the dynamodb session.")
+		log.Printf("Error creating the dynamodb session. %v", err )
 		utils.ServerError(errors.New("Error creating dynamodb session"))
 	}
 	db = dynamodb.New(sess)

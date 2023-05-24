@@ -5,10 +5,10 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
@@ -32,13 +32,13 @@ func handleValidationError(err error) []utils.ValidationError {
 			Field: err.Field(),
 			Error: err.Tag(),
 		})
-		log.Println("Errors are ", errors)
+		log.Printf("Errors are  %v", errors)
 	}
 	return errors
 }
 
-// creating instance of databae
 func updateFeatureFlag(updateFeatureFlagRequest models.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
+	//creating a db instance
 	db := database.CreateDynamoDB()
 
 	input := &dynamodb.UpdateItemInput{
@@ -108,7 +108,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	bytes := []byte(request.Body)
 	err := json.Unmarshal(bytes, &updateFeatureFlagRequest)
 	if err != nil {
-		log.Println("Error in reading input.")
+		log.Printf("Error in reading input. %v", err)
 		return utils.ClientError(http.StatusBadRequest, "Error in reading input")
 	}
 

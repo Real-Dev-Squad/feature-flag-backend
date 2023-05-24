@@ -97,7 +97,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	//creating a feature flag
 	err = createFeatureFlag(db, createFeatureFlagRequest)
 	if err != nil {
-		log.Println(err, " is the error ")
+		log.Printf("error is %v ", err)
 		return utils.ServerError(err)
 	}
 

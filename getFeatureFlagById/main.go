@@ -12,7 +12,6 @@ import (
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	id, _ := req.PathParameters["flagId"]
-	
 	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.Id, id)
 	if err != nil {
 		return utils.ServerError(err)
@@ -21,14 +20,14 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	if featureFlag == nil {
 		log.Println("Feature Flag not found")
 		return utils.ClientError(http.StatusNotFound, "Feature flag not found")
-		
+
 	}
 	log.Println(featureFlag, " is the feature flag")
-	
+
 	//marshal the item to JSON
 	jsonResponse, err := json.Marshal(featureFlag)
 	if err != nil {
-		log.Println("Error converting FeatureFlag to JSON")
+		log.Printf("Error converting FeatureFlag to JSON %v", err)
 		return utils.ServerError(err)
 	}
 
