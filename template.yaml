@@ -1,4 +1,15 @@
 Transform: 'AWS::Serverless-2016-10-31'
+Globals:
+  Function:
+    Timeout: 10
+    Environment:
+      Variables:
+        FEATURE_FLAG_TABLE_NAME: FeatureFlag
+        AWS_REGION: us-east-1
+        AWS_ACCESS_KEY: your access key
+        AWS_SECRET_KEY: your secret key
+        FEATURE_FLAG_USER_MAPPING_TABLE_NAME: Your feature flag user mapping table name
+        ENVIRONMENT: PRODUCTION
 
 Resources:
   HealthCheckFunction:
@@ -15,3 +26,45 @@ Resources:
           Properties:
             Path: /health-check
             Method: GET
+  GetFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: getFeatureFlagById/
+      Handler: getFeatureFlagById
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events:
+        CatchAll:
+          Type: Api
+          Properties: 
+            Path: /feature-flags/{flagId}
+            Method: GET 
+  CreateFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: createFeatureFlag/
+      Handler: createFeatureFlag
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events: 
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /feature-flags/
+            Method: POST
+  UpdateFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties: 
+      CodeUri: updateFeatureFlag/
+      Handler: updateFeatureFlag
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events: 
+        CatchAll: 
+          Type: Api
+          Properties:
+            Path: /feature-flags/{flagId}
+            Method: PATCH
