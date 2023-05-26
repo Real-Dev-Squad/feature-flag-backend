@@ -2,7 +2,6 @@ package database
 
 import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -94,7 +93,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	return db
 }
 
-func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string) (*models.FeatureFlagResponse, error) {
+func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string) (*utils.FeatureFlagResponse, error) {
 
 	db := CreateDynamoDB()
 
@@ -118,7 +117,7 @@ func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string)
 		return nil, nil
 	}
 
-	featureFlagResponse := new(models.FeatureFlagResponse)
+	featureFlagResponse := new(utils.FeatureFlagResponse)
 	err = dynamodbattribute.UnmarshalMap(result.Item, &featureFlagResponse)
 
 	if err != nil {

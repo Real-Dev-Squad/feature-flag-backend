@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -37,7 +36,7 @@ func handleValidationError(err error) []utils.ValidationError {
 	return errors
 }
 
-func updateFeatureFlag(flagId string, updateFeatureFlagRequest models.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
+func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
 	input := &dynamodb.UpdateItemInput{
@@ -80,7 +79,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest models.UpdateFeat
 		utils.ServerError(err)
 	}
 
-	featureFlag := new(models.FeatureFlag)
+	featureFlag := new(utils.FeatureFlagResponse)
 	err = dynamodbattribute.UnmarshalMap(result.Attributes, &featureFlag)
 
 	if err != nil {
@@ -103,7 +102,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest models.UpdateFeat
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	id, _ := request.PathParameters["flagId"]
 
-	updateFeatureFlagRequest := models.UpdateFeatureFlagRequest{}
+	updateFeatureFlagRequest := utils.UpdateFeatureFlagRequest{}
 
 	//marshal to updateFeatureFlag
 	bytes := []byte(request.Body)
