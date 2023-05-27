@@ -66,5 +66,5 @@ Resources:
         CatchAll: 
           Type: Api
           Properties:
-            Path: /feature-flags/
+            Path: /feature-flags/{flagId}
             Method: PATCH

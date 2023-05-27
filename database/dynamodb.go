@@ -2,7 +2,6 @@ package database
 
 import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -76,7 +75,7 @@ func GetFeatureFlagTableName() string {
 func CreateDynamoDB() *dynamodb.DynamoDB {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println(err)
+			log.Printf("Error is %v",err)
 		}
 	}()
 
@@ -87,14 +86,14 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	})
 
 	if err != nil {
-		log.Printf("Error creating the dynamodb session. %v", err )
+		log.Printf("Error creating the dynamodb session. %v", err)
 		utils.ServerError(errors.New("Error creating dynamodb session"))
 	}
 	db = dynamodb.New(sess)
 	return db
 }
 
-func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string) (*models.FeatureFlagResponse, error) {
+func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string) (*utils.FeatureFlagResponse, error) {
 
 	db := CreateDynamoDB()
 
@@ -118,7 +117,7 @@ func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string)
 		return nil, nil
 	}
 
-	featureFlagResponse := new(models.FeatureFlagResponse)
+	featureFlagResponse := new(utils.FeatureFlagResponse)
 	err = dynamodbattribute.UnmarshalMap(result.Item, &featureFlagResponse)
 
 	if err != nil {

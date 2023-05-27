@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -37,14 +36,13 @@ func handleValidationError(err error) []utils.ValidationError {
 	return errors
 }
 
-func updateFeatureFlag(updateFeatureFlagRequest models.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
-	//creating a db instance
+func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"Id": {
-				S: aws.String(updateFeatureFlagRequest.Id),
+				S: aws.String(flagId),
 			},
 		},
 		TableName: aws.String(database.GetFeatureFlagTableName()),
@@ -81,18 +79,18 @@ func updateFeatureFlag(updateFeatureFlagRequest models.UpdateFeatureFlagRequest)
 		utils.ServerError(err)
 	}
 
-	featureFlag := new(models.FeatureFlag)
+	featureFlag := new(utils.FeatureFlagResponse)
 	err = dynamodbattribute.UnmarshalMap(result.Attributes, &featureFlag)
 
 	if err != nil {
-		log.Println()
+		log.Printf("Error is %v", err)
 		utils.ServerError(err)
 	}
 
 	//marshal to JSON
 	resultJson, err := json.Marshal(featureFlag)
 	if err != nil {
-		log.Println("Unable to marshal to JSON", featureFlag.Id)
+		log.Printf("Unable to marshal to JSON %v", err)
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -102,13 +100,15 @@ func updateFeatureFlag(updateFeatureFlagRequest models.UpdateFeatureFlagRequest)
 }
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	updateFeatureFlagRequest := models.UpdateFeatureFlagRequest{}
+	id, _ := request.PathParameters["flagId"]
+
+	updateFeatureFlagRequest := utils.UpdateFeatureFlagRequest{}
 
 	//marshal to updateFeatureFlag
 	bytes := []byte(request.Body)
 	err := json.Unmarshal(bytes, &updateFeatureFlagRequest)
 	if err != nil {
-		log.Printf("Error in reading input. %v", err)
+		log.Printf("Error in reading input %v", err)
 		return utils.ClientError(http.StatusBadRequest, "Error in reading input")
 	}
 
@@ -143,7 +143,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}, nil
 	}
 
-	return updateFeatureFlag(updateFeatureFlagRequest)
+	return updateFeatureFlag(id, updateFeatureFlagRequest)
 }
 
 func main() {
