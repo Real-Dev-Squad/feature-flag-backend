@@ -35,14 +35,12 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 		Status:      utils.ENABLED,
 	}
 
-	//marshal to ddb attribute value
 	item, err := dynamodbattribute.MarshalMap(featureFlag)
 	if err != nil {
-		log.Println("Error marshalling object to DynamoDB AttributeValue: %v", err)
+		log.Printf("Error marshalling object to DynamoDB AttributeValue: %v", err)
 		return err
 	}
 
-	log.Println("item is", item)
 	input := &dynamodb.PutItemInput{
 		TableName: aws.String(database.GetFeatureFlagTableName()),
 		Item:      item,
@@ -51,13 +49,12 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 	log.Println(db, " is the db object")
 	_, err = db.PutItem(input)
 	if err != nil {
-		log.Println("Error putting item to Dynamodb: %v", err)
+		log.Printf("Error putting item to Dynamodb: %v", err)
 		return err
 	}
 	return nil
 }
 
-// //TODO: use the validation Error struct response and send it to the user
 
 func handleValidationError(err error) []utils.ValidationError {
 	var errors []utils.ValidationError
@@ -79,7 +76,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	err := json.Unmarshal([]byte(req.Body), &createFeatureFlagRequest)
 	if err != nil {
-		log.Println("Error unmarshal request body: %v", err)
+		log.Printf("Error unmarshal request body: %v", err)
 		return utils.ClientError(http.StatusUnprocessableEntity, "Error unmarshalling request body")
 	}
 
@@ -94,7 +91,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 			}, nil
 		}
 	}
-	//creating a feature flag
+
 	err = createFeatureFlag(db, createFeatureFlagRequest)
 	if err != nil {
 		log.Printf("error is %v ", err)
