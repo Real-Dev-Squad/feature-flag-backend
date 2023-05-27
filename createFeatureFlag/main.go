@@ -23,7 +23,7 @@ func init() {
 	validate = validator.New()
 }
 
-func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest models.CreateFeatureFlagRequest) error {
+func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.CreateFeatureFlagRequest) error {
 	featureFlag := models.FeatureFlag{
 		Id:          uuid.New().String(),
 		Name:        createFeatureFlagRequest.FlagName,
@@ -73,7 +73,7 @@ func handleValidationError(err error) []utils.ValidationError {
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var createFeatureFlagRequest models.CreateFeatureFlagRequest
+	var createFeatureFlagRequest utils.CreateFeatureFlagRequest
 
 	db := database.CreateDynamoDB()
 
