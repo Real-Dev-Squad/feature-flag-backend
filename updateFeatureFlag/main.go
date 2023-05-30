@@ -31,7 +31,7 @@ func handleValidationError(err error) []utils.ValidationError {
 			Field: err.Field(),
 			Error: err.Tag(),
 		})
-		log.Printf("Errors are  %v", errors)
+		log.Printf("Error while validating updateFeatureflag: %v", errors)
 	}
 	return errors
 }

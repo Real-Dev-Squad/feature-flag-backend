@@ -46,7 +46,6 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 		Item:      item,
 	}
 
-	log.Println(db, " is the db object")
 	_, err = db.PutItem(input)
 	if err != nil {
 		log.Printf("Error putting item to Dynamodb: %v", err)
@@ -54,7 +53,6 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 	}
 	return nil
 }
-
 
 func handleValidationError(err error) []utils.ValidationError {
 	var errors []utils.ValidationError
@@ -94,7 +92,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	err = createFeatureFlag(db, createFeatureFlagRequest)
 	if err != nil {
-		log.Printf("error is %v ", err)
+		log.Printf("Error while creating feature flag: %v ", err)
 		return utils.ServerError(err)
 	}
 

@@ -1,9 +1,9 @@
 package utils
 
 import (
+	"errors"
 	"github.com/joho/godotenv"
 	"log"
-	"errors"
 )
 
 func SetUpEnv() { //this is not for production environment only for dev, as we cannot load .ENV file in lambda
