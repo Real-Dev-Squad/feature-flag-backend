@@ -54,19 +54,6 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 	return nil
 }
 
-func handleValidationError(err error) []utils.ValidationError {
-	var errors []utils.ValidationError
-
-	for _, err := range err.(validator.ValidationErrors) {
-		errors = append(errors, utils.ValidationError{
-			Field: err.Field(),
-			Error: err.Tag(),
-		})
-	}
-	return errors
-
-}
-
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var createFeatureFlagRequest utils.CreateFeatureFlagRequest
 
@@ -79,15 +66,10 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	}
 
 	if err := validate.Struct(&createFeatureFlagRequest); err != nil {
-		errs := handleValidationError(err)
-
-		//TODO: use the errs response and pass it to the user instead of hardcoded message.
-		if len(errs) > 0 {
-			return events.APIGatewayProxyResponse{
-				Body:       "Check the request body passed name, description and userId are required.",
-				StatusCode: http.StatusBadRequest,
-			}, nil
-		}
+		return events.APIGatewayProxyResponse{
+			Body:       "Check the request body passed name, description and userId are required.",
+			StatusCode: http.StatusBadRequest,
+		}, nil
 	}
 
 	err = createFeatureFlag(db, createFeatureFlagRequest)
