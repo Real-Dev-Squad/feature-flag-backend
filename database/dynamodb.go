@@ -2,7 +2,6 @@ package database
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 
@@ -23,17 +22,10 @@ type AWSCredentials struct {
 var db *dynamodb.DynamoDB
 
 func init() {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
 	env := os.Getenv(utils.ENV)
 	if env == utils.PROD {
 		log.Println(env, " is the env")
 	}
-
 }
 
 func getAWSCredentials() *AWSCredentials {
