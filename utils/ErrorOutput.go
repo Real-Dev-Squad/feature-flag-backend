@@ -14,7 +14,7 @@ type ValidationError struct {
 }
 
 func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, error) {
-	if statusCode >= http.StatusBadRequest && statusCode < http.StatusInternalServerError {
+	if !(statusCode >= http.StatusBadRequest && statusCode < http.StatusInternalServerError) {
 		log.Printf("Wrong Status code used: %d for Client Error, allowed range is %d to %d", statusCode, http.StatusBadRequest, http.StatusInternalServerError)
 
 		return events.APIGatewayProxyResponse{
