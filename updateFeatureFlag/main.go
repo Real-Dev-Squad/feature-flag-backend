@@ -2,6 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
@@ -11,10 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
-	"log"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 var validate *validator.Validate
@@ -45,7 +46,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 				S: aws.String(flagId),
 			},
 		},
-		TableName: aws.String(database.GetFeatureFlagTableName()),
+		TableName: aws.String(database.GetTableName(utils.FF_TABLE_NAME)),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":status": {
 				S: aws.String(updateFeatureFlagRequest.Status),
