@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -37,7 +38,6 @@ func getAWSCredentials() *AWSCredentials {
 	if !found {
 		log.Println("AWS region not stored, please store it.")
 
-		// Here the error is passed for debugging to the user we show "Something went wrong"
 		utils.ServerError(errors.New("AWS region not stored in ENV var"))
 	}
 
@@ -45,7 +45,6 @@ func getAWSCredentials() *AWSCredentials {
 	if !found {
 		log.Println("AWS Access key not stored, please store it.")
 
-		// Here the error is passed for debugging to the user we show "Something went wrong"
 		utils.ServerError(errors.New("AWS Access key not stored in ENV var"))
 	}
 
@@ -53,7 +52,6 @@ func getAWSCredentials() *AWSCredentials {
 	if !found {
 		log.Println("AWS Secret key not stored, please store it.")
 
-		// Here the error is passed for debugging to the user we show "Something went wrong
 		utils.ServerError(errors.New("AWS Secret key not stored, please store it."))
 	}
 
@@ -63,7 +61,11 @@ func getAWSCredentials() *AWSCredentials {
 func GetTableName(envVarName string) string {
 	tableName, found := os.LookupEnv(envVarName)
 	if !found {
-		log.Panicf("%v is not set in env", envVarName)
+		errorMessage := fmt.Sprintf("%v is not set in env. \n", envVarName)
+
+		log.Printf(errorMessage)
+
+		utils.ServerError(errors.New(errorMessage))
 	}
 	return tableName
 }
