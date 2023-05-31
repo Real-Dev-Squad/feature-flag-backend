@@ -73,7 +73,7 @@ func GetTableName(envVarName string) string {
 func CreateDynamoDB() *dynamodb.DynamoDB {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("Error is %v", err)
+			log.Printf("Error is \n %v", err)
 		}
 	}()
 
@@ -84,7 +84,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	})
 
 	if err != nil {
-		log.Printf("Error creating the dynamodb session. %v", err)
+		log.Printf("Error creating the dynamodb session \n %v", err)
 		utils.ServerError(errors.New("Error creating dynamodb session"))
 	}
 	db = dynamodb.New(sess)

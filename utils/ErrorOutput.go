@@ -35,7 +35,7 @@ func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, e
 func ServerError(err error) (events.APIGatewayProxyResponse, error) {
 	errMsg := "Something went wrong, please try again."
 
-	log.Printf("Internal Server Error: %v", err)
+	log.Printf("Internal Server Error:\n %v", err)
 	return events.APIGatewayProxyResponse{
 		Body:       errMsg,
 		StatusCode: http.StatusInternalServerError,
