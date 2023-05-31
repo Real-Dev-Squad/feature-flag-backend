@@ -51,11 +51,7 @@ func processGetById(userId string) ([]models.FeatureFlagUserMapping, error) {
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	userId, found := req.PathParameters["userId"]
-	if !found {
-		log.Panic("User ID not passed")
-		return utils.ClientError(http.StatusBadRequest, "User ID not passed in request")
-	}
+	userId := req.PathParameters["userId"]
 	result, err := processGetById(userId)
 	if err != nil {
 		return utils.ServerError(err)
