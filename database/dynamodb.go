@@ -23,17 +23,10 @@ type AWSCredentials struct {
 var db *dynamodb.DynamoDB
 
 func init() {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
 	env := os.Getenv(utils.ENV)
 	if env == utils.PROD {
 		log.Println(env, " is the env")
 	}
-
 }
 
 func getAWSCredentials() *AWSCredentials {
@@ -71,7 +64,10 @@ func getAWSCredentials() *AWSCredentials {
 func GetTableName(envVarName string) string {
 	tableName, found := os.LookupEnv(envVarName)
 	if !found {
-		log.Panicf("%v is not set in env", envVarName)
+		errorMessage := fmt.Sprintf("%v is not set in env. \n", envVarName)
+		log.Printf(errorMessage)
+
+		utils.ServerError(errors.New(errorMessage))
 	}
 	return tableName
 }
