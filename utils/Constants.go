@@ -19,4 +19,6 @@ const (
 	Status          = "status"
 	UpdatedBy       = "updatedBy"
 	UpdatedAt       = "updatedAt"
+	UserId          = "userId"
+	FlagId          = "flagId"
 )
