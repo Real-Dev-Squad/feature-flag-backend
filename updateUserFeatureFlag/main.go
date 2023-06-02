@@ -33,10 +33,10 @@ func processUpdateById(userId string, flagId string, requestBody models.UpdateUs
 	input := &dynamodb.UpdateItemInput{
 		TableName: aws.String(database.GetTableName(utils.FFUM_TABLE_NAME)),
 		Key: map[string]*dynamodb.AttributeValue{
-			"userId": {
+			utils.UserId: {
 				S: aws.String(userId),
 			},
-			"flagId": {
+			utils.FlagId: {
 				S: aws.String(flagId),
 			},
 		},
@@ -91,16 +91,10 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	//validate the request
 	if err := validate.Struct(&requestBody); err != nil {
-		errs := utils.HandleValidationError(err)
-
-		//TODO: use the errs response and pass it to the user instead of hardcoded message.
-		if len(errs) > 0 {
-			return events.APIGatewayProxyResponse{
-				Body:       "Check the request body passed status and userId are required.",
-				StatusCode: http.StatusBadRequest,
-			}, nil
-		}
-
+		return events.APIGatewayProxyResponse{
+			Body:       "Check the request body passed status and userId are required.",
+			StatusCode: http.StatusBadRequest,
+		}, nil
 	}
 
 	//check if the status is valid one.
