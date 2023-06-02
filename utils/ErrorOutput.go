@@ -7,13 +7,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/go-playground/validator/v10"
 )
-
-type validationError struct {
-	Field string
-	Error string
-}
 
 func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, error) {
 	//check if the status sent is in the range of 400 and 500.
@@ -52,19 +46,6 @@ func DdbError(err error) {
 	} else {
 		log.Println(err.Error())
 	}
-}
-
-func HandleValidationError(err error) []validationError {
-	var errors []validationError
-
-	for _, err := range err.(validator.ValidationErrors) {
-		errors = append(errors, validationError{
-			Field: err.Field(),
-			Error: err.Tag(),
-		})
-		log.Println("Errors are ", errors)
-	}
-	return errors
 }
 
 func ValidateFeatureFlagStatus(status string) bool {

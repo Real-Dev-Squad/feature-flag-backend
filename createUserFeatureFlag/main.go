@@ -62,20 +62,14 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	//validate the request
 	if err := validate.Struct(&requestBody); err != nil {
-		errs := utils.HandleValidationError(err)
-
-		//TODO: use the errs response and pass it to the user instead of hardcoded message.
-		if len(errs) > 0 {
-			return events.APIGatewayProxyResponse{
-				Body:       "Check the request body passed status and userId are required.",
-				StatusCode: http.StatusBadRequest,
-			}, nil
-		}
-
+		return events.APIGatewayProxyResponse{
+			Body:       "Check the request body passed status and userId are required.",
+			StatusCode: http.StatusBadRequest,
+		}, nil
 	}
 
 	//check if the status is valid one.
-	found = utils.ValidateFeatureFlagStatus(requestBody.Status)
+	found := utils.ValidateFeatureFlagStatus(requestBody.Status)
 	// if the status is not valid one.
 	if !found {
 		return events.APIGatewayProxyResponse{
