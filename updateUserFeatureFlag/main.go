@@ -26,7 +26,7 @@ func init() {
 	validate = validator.New()
 }
 
-func processUpdateById(userId string, flagId string, requestBody models.UpdateUserMapping) (*models.FeatureFlagUserMapping, error) {
+func processUpdateByIds(userId string, flagId string, requestBody models.UpdateUserMapping) (*models.FeatureFlagUserMapping, error) {
 
 	db := database.CreateDynamoDB()
 
@@ -107,7 +107,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		}, nil
 	}
 
-	result, err := processUpdateById(userId, flagId, requestBody)
+	result, err := processUpdateByIds(userId, flagId, requestBody)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			if aerr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
