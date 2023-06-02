@@ -255,8 +255,8 @@ ApiRequests:
         type: string
       flagName:
         type: string
-      deactivated:
-        type: boolean
+      status:
+        type: string
       flagDescription:
         type: string
   

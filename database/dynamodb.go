@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 type AWSCredentials struct {
@@ -21,17 +23,10 @@ type AWSCredentials struct {
 var db *dynamodb.DynamoDB
 
 func init() {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
 	env := os.Getenv(utils.ENV)
 	if env == utils.PROD {
 		log.Println(env, " is the env")
 	}
-
 }
 
 func getAWSCredentials() *AWSCredentials {
@@ -41,15 +36,23 @@ func getAWSCredentials() *AWSCredentials {
 
 	awsCredentials.Region, found = os.LookupEnv(utils.REGION)
 	if !found {
-		log.Panic("AWS Region not found ")
+		log.Println("AWS region not stored, please store it.")
+
+		utils.ServerError(errors.New("AWS region not stored in ENV var"))
 	}
+
 	awsCredentials.AccessKey, found = os.LookupEnv(utils.ACCESS_KEY)
 	if !found {
-		log.Panic("AWS access key not found")
+		log.Println("AWS Access key not stored, please store it.")
+
+		utils.ServerError(errors.New("AWS Access key not stored in ENV var"))
 	}
+
 	awsCredentials.SecretKey, found = os.LookupEnv(utils.SECRET_KEY)
 	if !found {
-		log.Panic("AWS secret key not found")
+		log.Println("AWS Secret key not stored, please store it.")
+
+		utils.ServerError(errors.New("AWS Secret key not stored, please store it."))
 	}
 
 	return awsCredentials
@@ -58,7 +61,11 @@ func getAWSCredentials() *AWSCredentials {
 func GetTableName(envVarName string) string {
 	tableName, found := os.LookupEnv(envVarName)
 	if !found {
-		log.Panicf("%v is not set in env", envVarName)
+		errorMessage := fmt.Sprintf("%v is not set in env. \n", envVarName)
+
+		log.Printf(errorMessage)
+
+		utils.ServerError(errors.New(errorMessage))
 	}
 	return tableName
 }
@@ -66,7 +73,7 @@ func GetTableName(envVarName string) string {
 func CreateDynamoDB() *dynamodb.DynamoDB {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println(err)
+			log.Printf("Error is \n %v", err)
 		}
 	}()
 
@@ -77,8 +84,43 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	})
 
 	if err != nil {
-		log.Panic("Error while creating a session")
+		log.Printf("Error creating the dynamodb session \n %v", err)
+		utils.ServerError(errors.New("Error creating dynamodb session"))
 	}
 	db = dynamodb.New(sess)
 	return db
+}
+
+func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string) (*utils.FeatureFlagResponse, error) {
+
+	db := CreateDynamoDB()
+
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(GetTableName(utils.FF_TABLE_NAME)),
+		Key: map[string]*dynamodb.AttributeValue{
+			attributeName: {
+				S: aws.String(attributeValue),
+			},
+		},
+	}
+
+	result, err := db.GetItem(input)
+
+	if err != nil {
+		utils.DdbError(err)
+		return nil, err
+	}
+
+	if len(result.Item) == 0 {
+		return nil, nil
+	}
+
+	featureFlagResponse := new(utils.FeatureFlagResponse)
+	err = dynamodbattribute.UnmarshalMap(result.Item, &featureFlagResponse)
+
+	if err != nil {
+		log.Println(err, " is the error while converting to ddb object")
+		return nil, err
+	}
+	return featureFlagResponse, nil
 }
