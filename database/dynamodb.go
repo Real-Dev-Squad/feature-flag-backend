@@ -38,7 +38,6 @@ func getAWSCredentials() *AWSCredentials {
 	if !found {
 		log.Println("AWS region not stored, please store it.")
 
-		// Here the error is passed for debugging to the user we show "Something went wrong"
 		utils.ServerError(errors.New("AWS region not stored in ENV var"))
 	}
 
@@ -46,7 +45,6 @@ func getAWSCredentials() *AWSCredentials {
 	if !found {
 		log.Println("AWS Access key not stored, please store it.")
 
-		// Here the error is passed for debugging to the user we show "Something went wrong"
 		utils.ServerError(errors.New("AWS Access key not stored in ENV var"))
 	}
 
@@ -54,7 +52,6 @@ func getAWSCredentials() *AWSCredentials {
 	if !found {
 		log.Println("AWS Secret key not stored, please store it.")
 
-		// Here the error is passed for debugging to the user we show "Something went wrong
 		utils.ServerError(errors.New("AWS Secret key not stored, please store it."))
 	}
 
@@ -65,6 +62,7 @@ func GetTableName(envVarName string) string {
 	tableName, found := os.LookupEnv(envVarName)
 	if !found {
 		errorMessage := fmt.Sprintf("%v is not set in env. \n", envVarName)
+
 		log.Printf(errorMessage)
 
 		utils.ServerError(errors.New(errorMessage))
@@ -75,7 +73,7 @@ func GetTableName(envVarName string) string {
 func CreateDynamoDB() *dynamodb.DynamoDB {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("Error is %v", err)
+			log.Printf("Error is \n %v", err)
 		}
 	}()
 
@@ -86,7 +84,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	})
 
 	if err != nil {
-		log.Printf("Error creating the dynamodb session. %v", err)
+		log.Printf("Error creating the dynamodb session \n %v", err)
 		utils.ServerError(errors.New("Error creating dynamodb session"))
 	}
 	db = dynamodb.New(sess)
