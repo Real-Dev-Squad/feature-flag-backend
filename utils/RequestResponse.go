@@ -6,7 +6,7 @@ type UpdateFeatureFlagRequest struct {
 }
 
 type CreateFeatureFlagRequest struct {
-	FlagName    string `json:"Name" validate:"required,unique"`
+	FlagName    string `json:"Name" validate:"required"`
 	Description string `json:"Description" validate:"required"`
 	UserId      string `json:"UserId" validate:"required"`
 }
