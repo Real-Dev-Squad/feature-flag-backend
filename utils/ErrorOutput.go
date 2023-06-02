@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"log"
 	"net/http"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 type ValidationError struct {
@@ -13,7 +14,6 @@ type ValidationError struct {
 }
 
 func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, error) {
-	//check if the status sent is in the range of 400 and 500.
 	if !(statusCode >= http.StatusBadRequest && statusCode < http.StatusInternalServerError) {
 		log.Printf("Wrong Status code used: %d for Client Error, allowed range is %d to %d", statusCode, http.StatusBadRequest, http.StatusInternalServerError)
 
@@ -23,7 +23,6 @@ func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, e
 		}, nil
 	}
 
-	//return the response to the user
 	return events.APIGatewayProxyResponse{
 		Body:       body,
 		StatusCode: statusCode,
@@ -32,11 +31,11 @@ func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, e
 		},
 	}, nil
 }
+
 func ServerError(err error) (events.APIGatewayProxyResponse, error) {
 	errMsg := "Something went wrong, please try again."
 
-	//logging for internal use
-	log.Printf("Internal Server Error: %v", err)
+	log.Printf("Internal Server Error:\n %v", err)
 	return events.APIGatewayProxyResponse{
 		Body:       errMsg,
 		StatusCode: http.StatusInternalServerError,
