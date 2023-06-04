@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"log"
-	"net/http"
 )
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -23,10 +24,10 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	}
 	log.Println(featureFlag, " is the feature flag")
-	
+
 	jsonResponse, err := json.Marshal(featureFlag)
 	if err != nil {
-		log.Printf("Error converting FeatureFlag to JSON %v", err)
+		log.Printf("Error converting FeatureFlag to JSON \n %v", err)
 		return utils.ServerError(err)
 	}
 

@@ -61,7 +61,6 @@ func processUpdateByIds(userId string, flagId string, requestBody models.UpdateU
 		ReturnValues:        aws.String("ALL_NEW"),
 	}
 
-	// Perform the update operation
 	result, err := db.UpdateItem(input)
 
 	if err != nil {
@@ -85,8 +84,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	var requestBody models.UpdateUserMapping
 	err := json.Unmarshal([]byte(req.Body), &requestBody)
 	if err != nil {
-		log.Println("Error in reading input")
-		return utils.ClientError(http.StatusBadRequest, "Error in reading input")
+		log.Printf("Error unmarshal request body: \n %v", err)
+		return utils.ClientError(http.StatusUnprocessableEntity, "Error unmarshalling request body")
 	}
 
 	//validate the request
