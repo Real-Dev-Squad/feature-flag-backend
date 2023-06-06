@@ -2,6 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
@@ -12,9 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"log"
-	"net/http"
-	"time"
 )
 
 var validate *validator.Validate
@@ -37,18 +38,18 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 
 	item, err := dynamodbattribute.MarshalMap(featureFlag)
 	if err != nil {
-		log.Printf("Error marshalling object to DynamoDB AttributeValue: %v", err)
+		log.Printf("Error marshalling object to DynamoDB AttributeValue: \n %v", err)
 		return err
 	}
 
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String(database.GetFeatureFlagTableName()),
+		TableName: aws.String(database.GetTableName(utils.FF_TABLE_NAME)),
 		Item:      item,
 	}
 
 	_, err = db.PutItem(input)
 	if err != nil {
-		log.Printf("Error putting item to Dynamodb: %v", err)
+		log.Printf("Error putting item to Dynamodb: \n %v", err)
 		return err
 	}
 	return nil
@@ -61,7 +62,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	err := json.Unmarshal([]byte(req.Body), &createFeatureFlagRequest)
 	if err != nil {
-		log.Printf("Error unmarshal request body: %v", err)
+		log.Printf("Error unmarshal request body: \n %v", err)
 		return utils.ClientError(http.StatusUnprocessableEntity, "Error unmarshalling request body")
 	}
 
@@ -74,7 +75,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	err = createFeatureFlag(db, createFeatureFlagRequest)
 	if err != nil {
-		log.Printf("Error while creating feature flag: %v ", err)
+		log.Printf("Error while creating feature flag: \n %v ", err)
 		return utils.ServerError(err)
 	}
 

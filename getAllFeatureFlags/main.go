@@ -16,7 +16,7 @@ import (
 func getAllFeatureFlags(db *dynamodb.DynamoDB) ([]utils.FeatureFlagResponse, error) {
 
 	input := &dynamodb.ScanInput{
-		TableName: aws.String(database.GetFeatureFlagTableName()),
+		TableName: aws.String(database.GetTableName(utils.FF_TABLE_NAME)),
 	}
 	result, err := db.Scan(input)
 
@@ -43,7 +43,6 @@ func getAllFeatureFlags(db *dynamodb.DynamoDB) ([]utils.FeatureFlagResponse, err
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
-	log.Println(db, " is the database")
 	featureFlagsResponse, err := getAllFeatureFlags(db)
 
 	if err != nil {
@@ -51,16 +50,13 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	if featureFlagsResponse == nil {
-		return events.APIGatewayProxyResponse{
-			Body: "No entries found.",
-			StatusCode : http.StatusNotFound,
-		}, nil
+		utils.ClientError(http.StatusNotFound,"No feature flags found :( ")
 	}
 
 	jsonResult, err := json.Marshal(featureFlagsResponse)
 	if err != nil {
 		log.Println("Error converting feature flags to JSON")
-		utils.ServerError(err)
+		return utils.ServerError(err)
 	}
 
 	return events.APIGatewayProxyResponse{
