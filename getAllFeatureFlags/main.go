@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
@@ -9,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"log"
-	"encoding/json"
 	"net/http"
 )
 
@@ -50,7 +50,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	if featureFlagsResponse == nil {
-		utils.ClientError(http.StatusNotFound,"No feature flags found :( ")
+		utils.ClientError(http.StatusNotFound, "No feature flags found :( ")
 	}
 
 	jsonResult, err := json.Marshal(featureFlagsResponse)
@@ -60,7 +60,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	return events.APIGatewayProxyResponse{
-		Body:      	string(jsonResult),
+		Body:       string(jsonResult),
 		StatusCode: http.StatusOK,
 	}, nil
 
