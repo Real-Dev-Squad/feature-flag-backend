@@ -39,8 +39,8 @@ func ServerError(err error) (events.APIGatewayProxyResponse, error) {
 }
 
 func DdbError(err error) {
-	if aerr, ok := err.(awserr.Error); ok {
-		log.Printf("Error code %s, Error message %s", aerr.Code(), aerr.Error())
+	if awsErr, ok := err.(awserr.Error); ok {
+		log.Printf("Error code %s, Error message %s", awsErr.Code(), awsErr.Error())
 	} else {
 		log.Println(err.Error())
 	}
