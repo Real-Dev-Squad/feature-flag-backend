@@ -5,9 +5,6 @@ Globals:
     Environment:
       Variables:
         FEATURE_FLAG_TABLE_NAME: FeatureFlag
-        AWS_REGION: us-east-1
-        AWS_ACCESS_KEY: your access key
-        AWS_SECRET_KEY: your secret key
         FEATURE_FLAG_USER_MAPPING_TABLE_NAME: Your feature flag user mapping table name
         ENVIRONMENT: PRODUCTION
 
