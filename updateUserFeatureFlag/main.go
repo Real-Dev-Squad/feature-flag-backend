@@ -90,8 +90,9 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	//validate the request
 	if err := validate.Struct(&requestBody); err != nil {
+		errorMessage := "Check the request body passed status and userId are required."
 		return events.APIGatewayProxyResponse{
-			Body:       "Check the request body passed status and userId are required.",
+			Body:       errorMessage,
 			StatusCode: http.StatusBadRequest,
 		}, nil
 	}
