@@ -68,6 +68,20 @@ Resources:
           Properties:
             Path: /feature-flags/{flagId}
             Method: PATCH
+  GetAllFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties: 
+      CodeUri: getAllFeatureFlags/
+      Handler: getAllFeatureFlags
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events: 
+        CatchAll: 
+          Type: Api
+          Properties:
+            Path: /feature-flags/
+            Method: GET
   GetUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Properties:
