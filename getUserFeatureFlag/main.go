@@ -20,7 +20,7 @@ func processGetById(userId string, flagId string) (*models.FeatureFlagUserMappin
 	db := database.CreateDynamoDB()
 
 	input := &dynamodb.GetItemInput{
-		TableName: aws.String(database.GetTableName(utils.FFUM_TABLE_NAME)),
+		TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
 		Key: map[string]*dynamodb.AttributeValue{
 			utils.UserId: {
 				S: aws.String(userId),
