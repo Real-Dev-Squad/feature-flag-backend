@@ -1,0 +1,115 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'develop'
+
+env:
+  SAM_TEMPLATE: template.yaml
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+      - name: Prepare Outputs
+        id: prepare-step
+        run: |
+          echo "::set-output name=branch_name::${GITHUB_REF_SLUG}";
+    outputs:
+      branch_name: ${{ steps.prepare-step.outputs.branch_name }}
+
+  build-and-package:
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.branch_name }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v2
+      - uses: aws-actions/setup-sam@v1
+
+      - name: Build resources
+        run: sam build --template ${SAM_TEMPLATE} --use-container
+
+      - name: Assume the pipeline user role
+        env:
+          PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          PIPELINE_EXECUTION_ROLE: ${{ secrets.PIPELINE_EXECUTION_ROLE }}
+          REGION: ${{ secrets.REGION }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+          role-to-assume: ${{ env.PIPELINE_EXECUTION_ROLE }}
+          role-session-name: packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Upload artifacts to artifact buckets
+        env:
+          ARTIFACTS_BUCKET: ${{ secrets.ARTIFACTS_BUCKET }}
+          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
+          REGION: ${{ secrets.REGION }}
+        run: |
+          sam package \
+            --s3-bucket ${ARTIFACTS_BUCKET} \
+            --image-repository ${IMAGE_REPOSITORY} \
+            --region ${REGION} \
+            --output-template-file packaged.yaml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: packaged.yaml
+          path: packaged.yaml
+
+  deploy:
+    needs: [prepare, build-and-package]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.branch_name }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v2
+      - uses: aws-actions/setup-sam@v1
+      - uses: actions/download-artifact@v2
+        with:
+          name: packaged.yaml
+
+      - name: Assume the pipeline user role
+        env:
+          PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          PIPELINE_EXECUTION_ROLE: ${{ secrets.PIPELINE_EXECUTION_ROLE }}
+          REGION: ${{ secrets.REGION }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+          role-to-assume: ${{ env.PIPELINE_EXECUTION_ROLE }}
+          role-session-name: deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Deploy to account
+        env:
+          ARTIFACTS_BUCKET: ${{ secrets.ARTIFACTS_BUCKET }}
+          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
+          CLOUDFORMATION_EXECUTION_ROLE: ${{ secrets.CLOUDFORMATION_EXECUTION_ROLE }}
+          PIPELINE_STACK_NAME: ${{ secrets.STACK_NAME }}
+          REGION: ${{ secrets.REGION }}
+        run: |
+          sam deploy --stack-name ${PIPELINE_STACK_NAME} \
+            --no-confirm-changeset \
+            --template packaged.yaml \
+            --capabilities CAPABILITY_IAM \
+            --region ${REGION} \
+            --s3-bucket ${ARTIFACTS_BUCKET} \
+            --image-repository ${IMAGE_REPOSITORY} \
+            --no-fail-on-empty-changeset \
+            --role-arn ${CLOUDFORMATION_EXECUTION_ROLE}
