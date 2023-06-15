@@ -21,20 +21,20 @@ Resources:
           Properties:
             Path: /health-check
             Method: GET
-  # GetFeatureFlagFunction:
-  #   Type: 'AWS::Serverless::Function'
-  #   Properties:
-  #     CodeUri: getFeatureFlagById/
-  #     Handler: getFeatureFlagById
-  #     Runtime: go1.x
-  #     Architectures:
-  #       - x86_64
-  #     Events:
-  #       CatchAll:
-  #         Type: Api
-  #         Properties: 
-  #           Path: /feature-flags/{flagId}
-  #           Method: GET 
+  GetFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: getFeatureFlagById/
+      Handler: getFeatureFlagById
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events:
+        CatchAll:
+          Type: Api
+          Properties: 
+            Path: /feature-flags/{flagId}
+            Method: GET 
   CreateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -49,59 +49,59 @@ Resources:
           Properties:
             Path: /feature-flags/
             Method: POST
-  # UpdateFeatureFlagFunction:
-  #   Type: 'AWS::Serverless::Function'
-  #   Properties: 
-  #     CodeUri: updateFeatureFlag/
-  #     Handler: updateFeatureFlag
-  #     Runtime: go1.x
-  #     Architectures:
-  #       - x86_64
-  #     Events: 
-  #       CatchAll: 
-  #         Type: Api
-  #         Properties:
-  #           Path: /feature-flags/{flagId}
-  #           Method: PATCH
-  # GetAllFeatureFlagFunction:
-  #   Type: 'AWS::Serverless::Function'
-  #   Properties: 
-  #     CodeUri: getAllFeatureFlags/
-  #     Handler: getAllFeatureFlags
-  #     Runtime: go1.x
-  #     Architectures:
-  #       - x86_64
-  #     Events: 
-  #       CatchAll: 
-  #         Type: Api
-  #         Properties:
-  #           Path: /feature-flags/
-  #           Method: GET
-  # GetUserFeatureFlagFunction:
-  #   Type: 'AWS::Serverless::Function'
-  #   Properties:
-  #     CodeUri: getUserFeatureFlag/
-  #     Handler: getUserFeatureFlag
-  #     Runtime: go1.x
-  #     Architectures:
-  #       - x86_64
-  #     Events:
-  #       CatchAll:
-  #         Type: Api
-  #         Properties: 
-  #           Path: /users/{userId}/feature-flags/{flagId}
-  #           Method: GET
-  # GetUserFeatureFlagsFunction:
-  #   Type: 'AWS::Serverless::Function'
-  #   Properties:
-  #     CodeUri: getUserFeatureFlags/
-  #     Handler: getUserFeatureFlags
-  #     Runtime: go1.x
-  #     Architectures:
-  #       - x86_64
-  #     Events:
-  #       CatchAll:
-  #         Type: Api
-  #         Properties: 
-  #           Path: /users/{userId}/feature-flags
-  #           Method: GET
+  UpdateFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties: 
+      CodeUri: updateFeatureFlag/
+      Handler: updateFeatureFlag
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events: 
+        CatchAll: 
+          Type: Api
+          Properties:
+            Path: /feature-flags/{flagId}
+            Method: PATCH
+  GetAllFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties: 
+      CodeUri: getAllFeatureFlags/
+      Handler: getAllFeatureFlags
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events: 
+        CatchAll: 
+          Type: Api
+          Properties:
+            Path: /feature-flags/
+            Method: GET
+  GetUserFeatureFlagFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: getUserFeatureFlag/
+      Handler: getUserFeatureFlag
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events:
+        CatchAll:
+          Type: Api
+          Properties: 
+            Path: /users/{userId}/feature-flags/{flagId}
+            Method: GET
+  GetUserFeatureFlagsFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: getUserFeatureFlags/
+      Handler: getUserFeatureFlags
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Events:
+        CatchAll:
+          Type: Api
+          Properties: 
+            Path: /users/{userId}/feature-flags
+            Method: GET
