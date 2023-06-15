@@ -3,21 +3,22 @@ package database
 import (
 	"errors"
 	"log"
+	"os"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-type AWSCredentials struct {
-	AccessKey string
-	SecretKey string
-	Region    string
-}
-
 var db *dynamodb.DynamoDB
+
+func init() {
+	env := os.Getenv(utils.ENV)
+	log.Println("ENV=", env)
+}
 
 func CreateDynamoDB() *dynamodb.DynamoDB {
 	defer func() {
@@ -26,11 +27,36 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 		}
 	}()
 
-	sess, err := session.NewSession()
+	env, found := os.LookupEnv(utils.ENV)
+	if !found {
+		log.Println("ENV is not set, please store it.")
 
-	if err != nil {
-		log.Printf("Error creating the dynamodb session \n %v", err)
-		utils.ServerError(errors.New("Error creating dynamodb session"))
+		utils.ServerError(errors.New("Env is not set, please set DEVELOPMENT or PRODUCTION"))
+	}
+
+	var sess *session.Session
+	var err error
+
+	if env == utils.DEV {
+		sess, err = session.NewSession(&aws.Config{
+			Region:      aws.String(os.Getenv("AWS_REGION")),
+			Credentials: credentials.NewStaticCredentials(os.Getenv("AWS_ACCESS_KEY"), os.Getenv("AWS_SECRET_KEY"), ""),
+		})
+
+		if err != nil {
+			log.Printf("Error creating the dynamodb session in DEV env \n %v", err)
+			utils.ServerError(errors.New("Error creating dynamodb session in PROD env"))
+		}
+
+	} else { //ENV = PROD
+
+		sess, err = session.NewSession()
+
+		if err != nil {
+			log.Printf("Error creating the dynamodb session in PROD env \n %v", err)
+			utils.ServerError(errors.New("Error creating dynamodb session in PROD env"))
+		}
+
 	}
 	db = dynamodb.New(sess)
 	return db

@@ -1,6 +1,9 @@
 package utils
 
 const (
+	ENV                                  = "ENVIRONMENT"
+	DEV                                  = "DEVELOPMENT"
+	PROD                                 = "PRODUCTION"
 	FEATURE_FLAG_TABLE_NAME              = "featureFlags"
 	FEATURE_FLAG_USER_MAPPING_TABLE_NAME = "featureFlagUserMapping"
 	ENABLED                              = "ENABLED"
