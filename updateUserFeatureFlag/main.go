@@ -123,10 +123,12 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return utils.ServerError(err)
 	}
 
-	return events.APIGatewayProxyResponse{
+	response := events.APIGatewayProxyResponse{
 		Body:       string(resultJson),
 		StatusCode: http.StatusOK,
-	}, nil
+	}
+
+	return response, nil
 }
 
 func main() {
