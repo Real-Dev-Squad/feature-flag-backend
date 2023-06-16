@@ -21,7 +21,7 @@ func processGetById(userId string) ([]models.FeatureFlagUserMapping, error) {
 	db := database.CreateDynamoDB()
 
 	input := &dynamodb.QueryInput{
-		TableName:              aws.String(database.GetTableName(utils.FFUM_TABLE_NAME)),
+		TableName:              aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
 		KeyConditionExpression: aws.String(fmt.Sprintf("%v = :uid", utils.UserId)),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":uid": {

@@ -43,7 +43,7 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 	}
 
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String(database.GetTableName(utils.FF_TABLE_NAME)),
+		TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
 		Item:      item,
 	}
 
