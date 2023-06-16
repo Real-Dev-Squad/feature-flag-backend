@@ -31,7 +31,7 @@ func processUpdateByIds(userId string, flagId string, requestBody models.UpdateU
 	db := database.CreateDynamoDB()
 
 	input := &dynamodb.UpdateItemInput{
-		TableName: aws.String(database.GetTableName(utils.FFUM_TABLE_NAME)),
+		TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
 		Key: map[string]*dynamodb.AttributeValue{
 			utils.UserId: {
 				S: aws.String(userId),
