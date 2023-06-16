@@ -55,12 +55,10 @@ jobs:
       - name: Upload artifacts to artifact buckets
         env:
           ARTIFACTS_BUCKET: ${{ secrets.ARTIFACTS_BUCKET }}
-          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
           REGION: ${{ secrets.REGION }}
         run: |
           sam package \
             --s3-bucket ${ARTIFACTS_BUCKET} \
-            --image-repository ${IMAGE_REPOSITORY} \
             --region ${REGION} \
             --output-template-file packaged.yaml
       - uses: actions/upload-artifact@v2
@@ -99,7 +97,6 @@ jobs:
       - name: Deploy to account
         env:
           ARTIFACTS_BUCKET: ${{ secrets.ARTIFACTS_BUCKET }}
-          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
           CLOUDFORMATION_EXECUTION_ROLE: ${{ secrets.CLOUDFORMATION_EXECUTION_ROLE }}
           PIPELINE_STACK_NAME: ${{ secrets.STACK_NAME }}
           REGION: ${{ secrets.REGION }}
@@ -110,6 +107,5 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --region ${REGION} \
             --s3-bucket ${ARTIFACTS_BUCKET} \
-            --image-repository ${IMAGE_REPOSITORY} \
             --no-fail-on-empty-changeset \
             --role-arn ${CLOUDFORMATION_EXECUTION_ROLE}
