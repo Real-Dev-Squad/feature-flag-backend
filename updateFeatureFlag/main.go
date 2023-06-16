@@ -46,7 +46,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 				S: aws.String(flagId),
 			},
 		},
-		TableName: aws.String(database.GetTableName(utils.FF_TABLE_NAME)),
+		TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":status": {
 				S: aws.String(updateFeatureFlagRequest.Status),
