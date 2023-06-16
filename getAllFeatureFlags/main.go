@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
@@ -9,14 +12,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"log"
-	"net/http"
 )
 
 func getAllFeatureFlags(db *dynamodb.DynamoDB) ([]utils.FeatureFlagResponse, error) {
 
 	input := &dynamodb.ScanInput{
-		TableName: aws.String(database.GetTableName(utils.FF_TABLE_NAME)),
+		TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
 	}
 	result, err := db.Scan(input)
 
