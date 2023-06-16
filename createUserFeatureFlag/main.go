@@ -35,7 +35,7 @@ func processPutById(userId string, flagId string, featureFlagUserMapping models.
 	}
 
 	input := &dynamodb.PutItemInput{
-		TableName:           aws.String(database.GetTableName(utils.FFUM_TABLE_NAME)),
+		TableName:           aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
 		Item:                item,
 		ConditionExpression: aws.String("attribute_not_exists(userId)"),
 	}
