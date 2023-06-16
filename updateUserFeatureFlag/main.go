@@ -88,23 +88,22 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return utils.ClientError(http.StatusUnprocessableEntity, "Error unmarshalling request body")
 	}
 
-	//validate the request
 	if err := validate.Struct(&requestBody); err != nil {
 		errorMessage := "Check the request body passed status and userId are required."
-		return events.APIGatewayProxyResponse{
+		response := events.APIGatewayProxyResponse{
 			Body:       errorMessage,
 			StatusCode: http.StatusBadRequest,
-		}, nil
+		}
+		return response, nil
 	}
 
-	//check if the status is valid one.
 	found := utils.ValidateFeatureFlagStatus(requestBody.Status)
-	// if the status is not valid one.
 	if !found {
-		return events.APIGatewayProxyResponse{
+		response := events.APIGatewayProxyResponse{
 			Body:       "Allowed values of Status are ENABLED, DISABLED",
 			StatusCode: http.StatusBadRequest,
-		}, nil
+		}
+		return response, nil
 	}
 
 	result, err := processUpdateByIds(userId, flagId, requestBody)
