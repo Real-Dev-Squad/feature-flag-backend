@@ -26,7 +26,7 @@ func getAllFeatureFlags(db *dynamodb.DynamoDB) ([]utils.FeatureFlagResponse, err
 	}
 
 	if len(result.Items) == 0 {
-		return nil, nil
+		return []utils.FeatureFlagResponse{}, nil
 	}
 
 	var featureFlagsResponse []utils.FeatureFlagResponse
@@ -49,8 +49,8 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return utils.ServerError(err)
 	}
 
-	if featureFlagsResponse == nil {
-		utils.ClientError(http.StatusNotFound, "No feature flags found :( ")
+	if len(featureFlagsResponse) == 0 {
+		return utils.ClientError(http.StatusNotFound, "No feature flags found.")
 	}
 
 	jsonResult, err := json.Marshal(featureFlagsResponse)
