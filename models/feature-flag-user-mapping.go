@@ -14,3 +14,8 @@ type CreateUserMapping struct {
 	Status string `json:"status" validate:"required"`
 	UserId string `json:"userId" validate:"required"`
 }
+
+type UpdateUserMapping struct {
+	Status string `json:"status" validate:"required"`
+	UserId string `json:"userId" validate:"required"`
+}
