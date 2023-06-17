@@ -24,19 +24,6 @@ func init() {
 	validate = validator.New()
 }
 
-func handleValidationError(err error) []utils.ValidationError {
-	var errors []utils.ValidationError
-
-	for _, err := range err.(validator.ValidationErrors) {
-		errors = append(errors, utils.ValidationError{
-			Field: err.Field(),
-			Error: err.Tag(),
-		})
-		log.Printf("Error while validating updateFeatureflag: \n %v", errors)
-	}
-	return errors
-}
-
 func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
@@ -113,35 +100,22 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return utils.ClientError(http.StatusBadRequest, "Error in reading input")
 	}
 
-	//validate the request
 	if err := validate.Struct(&updateFeatureFlagRequest); err != nil {
-		errs := handleValidationError(err)
-
-		//TODO: use the errs response and pass it to the user instead of hardcoded message.
-		if len(errs) > 0 {
-			return events.APIGatewayProxyResponse{
-				Body:       "Check the request body passed status, flagId and userId are required.",
-				StatusCode: http.StatusBadRequest,
-			}, nil
+		errorMessage := "Check the request body passed status, flagId and userId are required."
+		response := events.APIGatewayProxyResponse{
+			Body:       errorMessage,
+			StatusCode: http.StatusBadRequest,
 		}
-
+		return response, nil
 	}
 
-	//check if the status is valid one.
-	allowedStatuses := []string{"ENABLED", "DISABLED"}
-	found := false
-	for _, allowedStatus := range allowedStatuses {
-		if updateFeatureFlagRequest.Status == allowedStatus {
-			found = true
-			break
-		}
-	}
-	// if the status is not valid one.
+	found := utils.ValidateFeatureFlagStatus(updateFeatureFlagRequest.Status)
 	if !found {
-		return events.APIGatewayProxyResponse{
+		response := events.APIGatewayProxyResponse{
 			Body:       "Allowed values of Status are ENABLED, DISABLED",
 			StatusCode: http.StatusBadRequest,
-		}, nil
+		}
+		return response, nil
 	}
 
 	return updateFeatureFlag(id, updateFeatureFlagRequest)
