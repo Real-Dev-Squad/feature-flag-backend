@@ -72,8 +72,8 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 
 	//throw the response on conditional check failed exception
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			if aerr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
 				return utils.ClientError(http.StatusNotFound, "Feature flag with given flagId doesn't exists")
 			}
 		}
