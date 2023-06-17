@@ -9,3 +9,8 @@ type FeatureFlagUserMapping struct {
 	UpdatedAt int64  `json:"updatedAt" dynamodbav:"updatedAt"`
 	UpdatedBy string `json:"updatedBy" dynamodbav:"updatedBy"`
 }
+
+type UpdateUserMapping struct {
+	Status string `json:"status" validate:"required"`
+	UserId string `json:"userId" validate:"required"`
+}

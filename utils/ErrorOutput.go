@@ -3,15 +3,11 @@ package utils
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 )
-
-type ValidationError struct {
-	Field string
-	Error string
-}
 
 func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, error) {
 	if !(statusCode >= http.StatusBadRequest && statusCode < http.StatusInternalServerError) {
@@ -48,4 +44,14 @@ func DdbError(err error) {
 	} else {
 		log.Println(err.Error())
 	}
+}
+
+func ValidateFeatureFlagStatus(status string) bool {
+	allowedStatuses := map[string]bool{
+		"ENABLED":  true,
+		"DISABLED": true,
+	}
+
+	_, found := allowedStatuses[strings.ToUpper(status)]
+	return found
 }
