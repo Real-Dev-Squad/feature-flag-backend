@@ -233,14 +233,14 @@ ApiResponses:
     items:
       type: object
       properties:
-        flagId:
+        Id:
           type: string
-        flagName:
+        Name:
           type: string
-        flagDescription:
+        Description:
           type: string
-        deactivated:
-          type: boolean
+        Status:
+          type: string
 
 ApiRequests:
   feature-flag:
