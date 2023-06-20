@@ -24,11 +24,11 @@ paths:
               schema:
                 $ref: '#/ApiResponses/feature-flags'
         '404':
-          description: Feature flags not found.
+          description: No feature flags found.
     post:
       tags:
         - feature-flags
-      summary: Create a new feature flag
+      summary: Creates a new feature flag
       description: Creates a new feature flag in the system
       requestBody:
         required: true
@@ -38,9 +38,9 @@ paths:
               $ref: '#/ApiRequests/feature-flag'
       responses:
         '201':
-          description: Successful response
-        '405': 
-          description: Invalid input
+          description: Created feature flag sucessfully
+        '400': 
+          description: Check the request body passed name, description and userId are required
   /feature-flags/{flagId}:
     get:
       tags:
@@ -51,7 +51,7 @@ paths:
         - name: flagId
           in: path
           required: true
-          description: ID of the user
+          description: feature flag Id
           schema:
             type: string
       responses:
@@ -62,9 +62,7 @@ paths:
               schema:
                 $ref: '#/ApiResponses/feature-flag'
         '404':
-          description: feature flag not found
-        '400':
-          description: Invalid feature flag Id supplied
+          description: Feature Flag not found
     patch:
       tags:
         - feature-flags
@@ -86,6 +84,12 @@ paths:
       responses:
         '200':
           description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/ApiResponses/feature-flag'
+        '400':
+          description: Check the request body passed status and userId are required.
         
           
   /users/{userId}/feature-flags/:
@@ -194,14 +198,14 @@ ApiResponses:
   feature-flag:
     type: object
     properties: 
-      flagId:
+      Id:
         type: string
-      flagName: 
+      Name: 
         type: string
-      flagDescription:
+      Description:
         type: string
-      deactivated:
-        type: boolean
+      Status:
+        type: string
         
   User-feature-flag-response:
     type: object
@@ -242,23 +246,26 @@ ApiRequests:
   feature-flag:
     type: object
     properties:
-      flagId:
+      Name:
         type: string
-      flagName: 
+      Description:
         type: string
-      flagDescription:
+      UserId:
         type: string
+    required:
+      - Name
+      - Description
+      - UserId
   feature-flag-update:
     type: object
     properties: 
-      flagId:
+      Status:
         type: string
-      flagName:
+      UserId:
         type: string
-      status:
-        type: string
-      flagDescription:
-        type: string
+    required:
+      - Status
+      - UserId
   
   featureflag-user-update:
     type: object
