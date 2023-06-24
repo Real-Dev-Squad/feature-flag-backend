@@ -1,6 +1,6 @@
 # Feature Flag Backend
 
-The Feature Flag Backend service helps manage feature flags for your applications in Real Dev Squad. With feature flags, we can easily enable or disable specific features for different groups of users. It provides APIs for creating, updating, and retrieving feature flags and user mappings. The backend is built using Golang and is deployed using a serverless architecture on AWS Lambda. It uses DynamoDB as the database. Whenever we want to roll out new features gradually or experiment with different options, the Feature Flag Backend simplifies the process and gives us full control over our features.
+The Feature Flag Backend service helps manage feature flags for your applications in Real Dev Squad. With feature flags, we can easily enable or disable specific features for different groups of users. It provides APIs for creating, updating, and retrieving feature flags and user mappings. The backend is built using Golang and is deployed using a serverless architecture on [AWS Lambda](https://aws.amazon.com/lambda/). It uses DynamoDB as the database. Whenever we want to roll out new features gradually or experiment with different options, the Feature Flag Backend simplifies the process and gives us full control over our features.
 
 ## Table of Contents
 
