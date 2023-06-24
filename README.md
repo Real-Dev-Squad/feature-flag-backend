@@ -16,23 +16,45 @@ The Feature Flag Backend service helps manage feature flags for your application
 You should have some things pre-installed :
 - [VS Code](https://code.visualstudio.com/) or any other IDE
 - [Git](https://git-scm.com/)
-- [SAM-CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
-- [Golang](https://go.dev/)
+- [Golang](https://go.dev/)(version 1.20 or later)
 - [Docker](https://www.docker.com/)
 
-**Open the terminal or command prompt:** Depending on your operating system, open the terminal or command prompt to begin the cloning process.
 
-**Navigate to your desired local directory:** Use the cd command to navigate to the directory where you want to store the cloned repository.
+1. **Clone the repository**
 
-**Clone the repository:** Use the following command to clone the repository :
+    - **Open the terminal or command prompt:** Depending on your operating system, open the terminal or command prompt to begin the      cloning process. 
 
-```
-git clone https://github.com/Real-Dev-Squad/feature-flag-backend.git
-```
+    - **Navigate to your desired local directory:** Use the cd command to navigate to the directory where you want to store the cloned repository.
+ 
+    - **Clone the repository:** Use the following command to clone the repository :
+
+        ```
+        git clone https://github.com/Real-Dev-Squad/  feature-flag-backend.git 
+        ```
+
+2. **AWS CLI**
+    - Follow all the steps mentioned in [AWS SAM prerequisites](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/prerequisites.html) document guide to install and setup AWS CLI
+    
+    > **Note**
+    > This step will not be required once the support for local DynamoDB setup is added. To know more read [this](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)
+  
+3. **AWS SAM CLI**
+    - Follow all the steps mentioned for your local OS in [Installing the AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/prerequisites.html) document guide to install and setup AWS SAM CLI
 
 ## Run
 
-//TODO
+1. Navigate to directory where [template.yaml](./template.yaml) is present
+2. Run this command to build the backend
+  ```
+  sam build
+  ```
+3. Run this command to start the backend in development mode
+  ```
+  sam local start-api
+  ```
+  By default the port 3000 is used, if you need to change add the `--port {port_number}` options at end the end of above command
+  If you have multiple aws proiles use the `--profile {profile_name}` option at end the end of above command
+  For more options refer [here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-start-api.html) 
 
 ## Usage
 
