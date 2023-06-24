@@ -1,6 +1,6 @@
 # Feature Flag Backend
 
-The Feature Flag Backend service helps manage feature flags for your applications in Real Dev Squad. With feature flags, we can easily enable or disable specific features for different groups of users. It provides APIs for creating, updating, and retrieving feature flags and user mappings. The backend is built using Golang and is deployed using a serverless architecture on AWS Lambda. It uses DynamoDB as the database. Whenever we want to roll out new features gradually or experiment with different options, the Feature Flag Backend simplifies the process and gives us full control over our features.
+The Feature Flag Backend service helps manage feature flags for your applications in Real Dev Squad. With feature flags, we can easily enable or disable specific features for different groups of users. It provides APIs for creating, updating, and retrieving feature flags and user mappings. The backend is built using Golang and is deployed using a serverless architecture on [AWS Lambda](https://aws.amazon.com/lambda/). It uses DynamoDB as the database. Whenever we want to roll out new features gradually or experiment with different options, the Feature Flag Backend simplifies the process and gives us full control over our features.
 
 ## Table of Contents
 
@@ -22,14 +22,11 @@ You should have some things pre-installed :
 
 1. **Clone the repository**
 
-    - **Open the terminal or command prompt:** Depending on your operating system, open the terminal or command prompt to begin the      cloning process. 
-
+    - **Open the terminal or command prompt:** Depending on your operating system, open the terminal or command prompt to begin the cloning process. 
     - **Navigate to your desired local directory:** Use the cd command to navigate to the directory where you want to store the cloned repository.
- 
     - **Clone the repository:** Use the following command to clone the repository :
-
         ```
-        git clone https://github.com/Real-Dev-Squad/  feature-flag-backend.git 
+        git clone https://github.com/Real-Dev-Squad/feature-flag-backend.git
         ```
 
 2. **AWS CLI**
@@ -41,9 +38,13 @@ You should have some things pre-installed :
 3. **AWS SAM CLI**
     - Follow all the steps mentioned for your local OS in [Installing the AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/prerequisites.html) document guide to install and setup AWS SAM CLI
 
+4. **Add tables in DynamoDB**
+    - Follow steps 1 to 5 (ignore the last step to add backup) mentioned in [Create a table](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html) development guide under AWS Management Console section
+   - For table names and thier respective keys information refer to the [Data Model](#data-model) section   
+
 ## Run
 
-1. Navigate to directory where [template.yaml](./template.yaml) is present
+1. Navigate to the directory where [template.yaml](./template.yaml) is present
 2. Run this command to build the backend
   ```
   sam build
@@ -52,8 +53,8 @@ You should have some things pre-installed :
   ```
   sam local start-api
   ```
-  By default the port 3000 is used, if you need to change add the `--port {port_number}` options at end the end of above command
-  If you have multiple aws proiles use the `--profile {profile_name}` option at end the end of above command
+  By default port 3000 is used, if you need to change add the `--port {port_number}` options at the end of the above command.
+  If you have multiple AWS profiles use the `--profile {profile_name}` option at the end of the above command.
   For more options refer [here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-start-api.html) 
 
 ## Usage
