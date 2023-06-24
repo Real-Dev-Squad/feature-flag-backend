@@ -22,14 +22,14 @@ You should have some things pre-installed :
 
 1. **Clone the repository**
 
-    - **Open the terminal or command prompt:** Depending on your operating system, open the terminal or command prompt to begin the      cloning process. 
+    - **Open the terminal or command prompt:** Depending on your operating system, open the terminal or command prompt to begin the cloning process. 
 
     - **Navigate to your desired local directory:** Use the cd command to navigate to the directory where you want to store the cloned repository.
  
     - **Clone the repository:** Use the following command to clone the repository :
 
         ```
-        git clone https://github.com/Real-Dev-Squad/  feature-flag-backend.git 
+        git clone https://github.com/Real-Dev-Squad/feature-flag-backend.git
         ```
 
 2. **AWS CLI**
@@ -52,8 +52,8 @@ You should have some things pre-installed :
   ```
   sam local start-api
   ```
-  By default the port 3000 is used, if you need to change add the `--port {port_number}` options at end the end of above command
-  If you have multiple aws proiles use the `--profile {profile_name}` option at end the end of above command
+  By default port 3000 is used, if you need to change add the `--port {port_number}` options at end the end of the above command
+  If you have multiple AWS profiles use the `--profile {profile_name}` option at the end the end of the above command
   For more options refer [here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-start-api.html) 
 
 ## Usage
