@@ -38,6 +38,10 @@ You should have some things pre-installed :
 3. **AWS SAM CLI**
     - Follow all the steps mentioned for your local OS in [Installing the AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/prerequisites.html) document guide to install and setup AWS SAM CLI
 
+4. **Add tables in DynamoDB**
+    - Follow steps 1 to 5 (ignore the last step to add backup) mentioned in [Create a table](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html) development guide under AWS Management Console section
+   - For table names and thier respective keys information refer to the [Data Model](#data-model) section   
+
 ## Run
 
 1. Navigate to the directory where [template.yaml](./template.yaml) is present
