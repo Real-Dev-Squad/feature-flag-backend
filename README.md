@@ -49,8 +49,8 @@ You should have some things pre-installed :
   ```
   sam local start-api
   ```
-  By default port 3000 is used, if you need to change add the `--port {port_number}` options at the end of the above command
-  If you have multiple AWS profiles use the `--profile {profile_name}` option at the end of the above command
+  By default port 3000 is used, if you need to change add the `--port {port_number}` options at the end of the above command.
+  If you have multiple AWS profiles use the `--profile {profile_name}` option at the end of the above command.
   For more options refer [here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-start-api.html) 
 
 ## Usage
