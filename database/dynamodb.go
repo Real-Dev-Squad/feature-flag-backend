@@ -7,7 +7,6 @@ import (
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -39,8 +38,8 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 
 	if env == utils.DEV {
 		sess, err = session.NewSession(&aws.Config{
-			Region:      aws.String(os.Getenv("AWS_REGION")),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("AWS_ACCESS_KEY"), os.Getenv("AWS_SECRET_KEY"), ""),
+			Region:   aws.String(os.Getenv("AWS_REGION")),
+			Endpoint: aws.String("http://host.docker.internal:8000"),
 		})
 
 		if err != nil {
