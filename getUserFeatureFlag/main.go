@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -15,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-func processGetById(userId string, flagId string) (*models.FeatureFlagUserMapping, error) {
+func processGetById(userId string, flagId string) (*utils.FeatureFlagUserMappingResponse, error) {
 
 	db := database.CreateDynamoDB()
 
@@ -39,7 +38,7 @@ func processGetById(userId string, flagId string) (*models.FeatureFlagUserMappin
 	if result.Item == nil {
 		return nil, nil
 	}
-	featureFlagUserMapping := new(models.FeatureFlagUserMapping)
+	featureFlagUserMapping := new(utils.FeatureFlagUserMappingResponse)
 	err = dynamodbattribute.UnmarshalMap(result.Item, &featureFlagUserMapping)
 
 	if err != nil {
