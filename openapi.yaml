@@ -22,7 +22,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/ApiResponses/feature-flags'
+                $ref: '#/components/schemas/feature-flag-response'
         '404':
           description: No feature flags found.
     post:
@@ -60,7 +60,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/ApiResponses/feature-flag'
+                $ref: '#/components/schemas/feature-flag-response'
         '404':
           description: Feature Flag not found
     patch:
@@ -87,7 +87,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/ApiResponses/feature-flag'
+                $ref: '#/components/schemas/feature-flag-response'
         '400':
           description: Check the request body passed status and userId are required.
         
@@ -194,6 +194,21 @@ components:
           type: number
         upadtedBy: 
           type: string
+    feature-flag-response:
+      type: object
+      properties:
+        Id: 
+          type: string
+        Name:
+          type: string
+        Description:
+          type: string
+        Status: 
+          type: string
+    get-all-feature-flag-response:
+      type: array
+      items:
+        $ref: '#/components/schemas/feature-flag-response'
     user-feature-flag-responses:
       type: array
       items:
@@ -217,7 +232,38 @@ components:
                 type: string
               status: 
                 type: string
-    
+    create-feature-flag:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: 
+              Name: 
+                type: string
+              Description:
+                type: string
+              UserId: 
+                type: string
+            required:
+              - Name
+              - Description
+              - UserId
+    update-feature-flag:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: 
+              Status:
+                type: string
+              UserId:
+                type: string
+            required:
+              - Status
+              - UserId
+
   responses:
     update-user-feature-flag:
       description: "Updated successfully"
@@ -251,55 +297,3 @@ components:
             oneOf:
               - $ref: '#/components/schemas/request-validation-user-feature-flag'
               - $ref: '#/components/schemas/status-validation-user-feature-flag'
-
-ApiResponses:
-  feature-flag:
-    type: object
-    properties: 
-      Id:
-        type: string
-      Name: 
-        type: string
-      Description:
-        type: string
-      Status:
-        type: string
-          
-  feature-flags:        
-    type: array
-    items:
-      type: object
-      properties:
-        Id:
-          type: string
-        Name:
-          type: string
-        Description:
-          type: string
-        Status:
-          type: string
-      
-ApiRequests:
-  feature-flag:
-    type: object
-    properties:
-      Name:
-        type: string
-      Description:
-        type: string
-      UserId:
-        type: string
-    required:
-      - Name
-      - Description
-      - UserId
-  feature-flag-update:
-    type: object
-    properties: 
-      Status:
-        type: string
-      UserId:
-        type: string
-    required:
-      - Status
-      - UserId
