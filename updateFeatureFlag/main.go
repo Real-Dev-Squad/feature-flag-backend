@@ -101,7 +101,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	if err := validate.Struct(&updateFeatureFlagRequest); err != nil {
-		errorMessage := "Check the request body passed status, flagId and userId are required."
+		errorMessage := "Check the request body passed status and userId are required."
 		response := events.APIGatewayProxyResponse{
 			Body:       errorMessage,
 			StatusCode: http.StatusBadRequest,
