@@ -32,10 +32,10 @@ func processUpdateByIds(userId string, flagId string, requestBody utils.UpdateFe
 	input := &dynamodb.UpdateItemInput{
 		TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
 		Key: map[string]*dynamodb.AttributeValue{
-			utils.UserId: {
+			utils.UserId: { // partition key
 				S: aws.String(userId),
 			},
-			utils.FlagId: {
+			utils.FlagId: { // sort key
 				S: aws.String(flagId),
 			},
 		},
