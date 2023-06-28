@@ -1,19 +1,43 @@
 package utils
 
 type UpdateFeatureFlagRequest struct {
-	Status string `json:"Status" validate:"required"`
-	UserId string `json:"UserId" validate:"required"`
+	Status string `json:"status" validate:"required"`
+	UserId string `json:"userId" validate:"required"`
 }
 
 type CreateFeatureFlagRequest struct {
-	FlagName    string `json:"Name" validate:"required"`
-	Description string `json:"Description" validate:"required"`
-	UserId      string `json:"UserId" validate:"required"`
+	FlagName    string `json:"name" validate:"required"`
+	Description string `json:"description" validate:"required"`
+	UserId      string `json:"userId" validate:"required"`
 }
 
 type FeatureFlagResponse struct {
-	Id          string `json:"Id"`
-	Name        string `json:"Name"`
-	Description string `json:"Description"`
-	Status      string `json:"Status"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	CreatedAt   int64  `json:"createdAt"`
+	CreatedBy   string `json:"createdBy"`
+	UpdatedAt   int64  `json:"updatedAt"`
+	UpdatedBy   string `json:"updatedBy"`
+}
+
+type CreateFeatureFlagUserMappingRequest struct {
+	Status string `json:"status" validate:"required"`
+	UserId string `json:"userId" validate:"required"`
+}
+
+type UpdateFeatureFlagUserMappingRequest struct {
+	Status string `json:"status" validate:"required"`
+	UserId string `json:"userId" validate:"required"`
+}
+
+type FeatureFlagUserMappingResponse struct {
+	UserId    string `json:"userId"`
+	FlagId    string `json:"flagId"`
+	Status    string `json:"status"`
+	CreatedAt int64  `json:"createdAt"`
+	CreatedBy string `json:"createdBy"`
+	UpdatedAt int64  `json:"updatedAt"`
+	UpdatedBy string `json:"updatedBy"`
 }

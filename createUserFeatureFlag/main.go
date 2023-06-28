@@ -53,7 +53,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	userId := req.PathParameters["userId"]
 	flagId := req.PathParameters["flagId"]
 
-	var requestBody models.CreateUserMapping
+	var requestBody utils.CreateFeatureFlagUserMappingRequest
 	err := json.Unmarshal([]byte(req.Body), &requestBody)
 	if err != nil {
 		log.Printf("Error unmarshal request body: \n %v", err)
@@ -83,6 +83,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		Status:    strings.ToUpper(requestBody.Status),
 		CreatedAt: time.Now().Unix(),
 		CreatedBy: requestBody.UserId,
+		UpdatedAt: time.Now().Unix(),
+		UpdatedBy: requestBody.UserId,
 	}
 
 	result, err := processPutById(userId, flagId, featureFlagUserMapping)

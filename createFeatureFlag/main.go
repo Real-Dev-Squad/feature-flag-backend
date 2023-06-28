@@ -84,7 +84,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
-		Body: "Created feature flag sucessfully",
+		Body: "Created feature flag successfully",
 	}
 	return response, nil
 }
