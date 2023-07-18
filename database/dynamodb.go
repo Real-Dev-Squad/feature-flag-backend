@@ -44,7 +44,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 
 		if err != nil {
 			log.Printf("Error creating the dynamodb session in DEV env \n %v", err)
-			utils.ServerError(errors.New("Error creating dynamodb session in PROD env"))
+			utils.ServerError(errors.New("Error creating dynamodb session in DEV env"))
 		}
 
 	} else { //ENV = PROD
@@ -58,7 +58,91 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 
 	}
 	db = dynamodb.New(sess)
+
+	if env == utils.DEV {
+		input := &dynamodb.ListTablesInput{}
+		result, err := db.ListTables(input)
+		if err != nil {
+			log.Printf("Error listing tables \n %v", err)
+			utils.ServerError(errors.New("Error listing tables"))
+		}
+
+		if len(result.TableNames) == 0 {
+			tableSchemas := []dynamodb.CreateTableInput{
+				{
+					TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
+					KeySchema: []*dynamodb.KeySchemaElement{
+						{
+							AttributeName: aws.String(utils.UserId),
+							KeyType:       aws.String("HASH"),
+						},
+						{
+							AttributeName: aws.String(utils.FlagId),
+							KeyType:       aws.String("RANGE"),
+						},
+					},
+					AttributeDefinitions: []*dynamodb.AttributeDefinition{
+						{
+							AttributeName: aws.String(utils.UserId),
+							AttributeType: aws.String("S"),
+						},
+						{
+							AttributeName: aws.String(utils.FlagId),
+							AttributeType: aws.String("S"),
+						},
+					},
+					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+						ReadCapacityUnits:  aws.Int64(5),
+						WriteCapacityUnits: aws.Int64(5),
+					},
+				},
+				{
+					TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
+					KeySchema: []*dynamodb.KeySchemaElement{
+						{
+							AttributeName: aws.String(utils.Id),
+							KeyType:       aws.String("HASH"),
+						},
+					},
+					AttributeDefinitions: []*dynamodb.AttributeDefinition{
+						{
+							AttributeName: aws.String(utils.Id),
+							AttributeType: aws.String("S"),
+						},
+					},
+					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+						ReadCapacityUnits:  aws.Int64(5),
+						WriteCapacityUnits: aws.Int64(5),
+					},
+				},
+			}
+			err := createTables(db, tableSchemas)
+			if err != nil {
+				log.Printf("Error setting up local dynamodb in DEV env \n %v", err)
+				utils.ServerError(errors.New("Error setting up local dynamodb in DEV env"))
+			}
+		}
+	}
+
 	return db
+}
+
+func createTables(db *dynamodb.DynamoDB, schemas []dynamodb.CreateTableInput) error {
+	for _, schema := range schemas {
+		input := &dynamodb.CreateTableInput{
+			TableName:             schema.TableName,
+			KeySchema:             schema.KeySchema,
+			AttributeDefinitions:  schema.AttributeDefinitions,
+			ProvisionedThroughput: schema.ProvisionedThroughput,
+		}
+
+		_, err := db.CreateTable(input)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string) (*utils.FeatureFlagResponse, error) {
