@@ -92,6 +92,28 @@ paths:
           description: Check the request body passed status and userId are required.
         
           
+  /users/{userId}/feature-flags:
+    get:
+      tags:
+        - feature-flag-user-mapping
+      summary: Get all feature flags for user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Id of user
+          schema: 
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/get-all-user-feature-flag'
+        '404':
+          description: "Not found"
+          content: 
+            application/json:
+              schema:
+                type: string
+                example: User feature flags not found
   /users/{userId}/feature-flag/{flagId}:
     get:
       tags:
@@ -205,10 +227,6 @@ components:
           type: string
         Status: 
           type: string
-    get-all-feature-flag-response:
-      type: array
-      items:
-        $ref: '#/components/schemas/feature-flag-response'
     user-feature-flag-responses:
       type: array
       items:
