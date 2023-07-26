@@ -4,6 +4,7 @@ const (
 	ENV                                  = "ENVIRONMENT"
 	DEV                                  = "DEVELOPMENT"
 	PROD                                 = "PRODUCTION"
+	TEST                                 = "TESTING"
 	FEATURE_FLAG_TABLE_NAME              = "FeatureFlag"
 	FEATURE_FLAG_USER_MAPPING_TABLE_NAME = "FeatureFlagUserMapping"
 	ENABLED                              = "ENABLED"
