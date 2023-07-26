@@ -49,7 +49,7 @@ func TestHandler(t *testing.T) {
 	}
 	resultJson, err := json.Marshal(result)
 	if err != nil {
-		t.Fatalf("Error converting addUserFeatureFlagMapping result to JSON")
+		t.Fatal("Error converting addUserFeatureFlagMapping result to JSON")
 	}
 
 	tests := []struct {
