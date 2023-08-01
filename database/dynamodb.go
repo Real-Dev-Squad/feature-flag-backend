@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -36,7 +37,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	var sess *session.Session
 	var err error
 
-	if env == utils.DEV {
+	if env == utils.DEV || env == utils.TEST {
 		sess, err = session.NewSession(&aws.Config{
 			Region:   aws.String(os.Getenv("AWS_REGION")),
 			Endpoint: aws.String("http://host.docker.internal:8000"),
@@ -59,7 +60,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 	}
 	db = dynamodb.New(sess)
 
-	if env == utils.DEV {
+	if env == utils.DEV || env == utils.TEST {
 		input := &dynamodb.ListTablesInput{}
 		result, err := db.ListTables(input)
 		if err != nil {
@@ -118,7 +119,7 @@ func CreateDynamoDB() *dynamodb.DynamoDB {
 			}
 			err := createTables(db, tableSchemas)
 			if err != nil {
-				log.Printf("Error setting up local dynamodb in DEV env \n %v", err)
+				log.Printf("Error setting up local dynamodb in %v env \n %v", env, err)
 				utils.ServerError(errors.New("Error setting up local dynamodb in DEV env"))
 			}
 		}
@@ -177,4 +178,28 @@ func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string)
 		return nil, err
 	}
 	return featureFlagResponse, nil
+}
+
+func AddUserFeatureFlagMapping(featureFlagUserMappings []models.FeatureFlagUserMapping) ([]models.FeatureFlagUserMapping, error) {
+	db := CreateDynamoDB()
+
+	for _, featureFlagUserMapping := range featureFlagUserMappings {
+		item, err := dynamodbattribute.MarshalMap(featureFlagUserMapping)
+		if err != nil {
+			return nil, err
+		}
+
+		input := &dynamodb.PutItemInput{
+			TableName:           aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
+			Item:                item,
+			ConditionExpression: aws.String("attribute_not_exists(userId)"),
+		}
+
+		_, err = db.PutItem(input)
+		if err != nil {
+			utils.DdbError(err)
+			return nil, err
+		}
+	}
+	return featureFlagUserMappings, nil
 }
