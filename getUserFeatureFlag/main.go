@@ -9,7 +9,7 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
+	lambda "github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -18,6 +18,8 @@ import (
 func processGetById(userId string, flagId string) (*models.FeatureFlagUserMapping, error) {
 
 	db := database.CreateDynamoDB()
+
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
 
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
@@ -55,14 +57,18 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	flagId := req.PathParameters["flagId"]
 
 	result, err := processGetById(userId, flagId)
+
 	if err != nil {
 		return utils.ServerError(err)
 	}
+
 	if result == nil {
 		log.Println("User feature flag not found")
 		return utils.ClientError(http.StatusNotFound, "User feature flag not found")
 	}
+
 	resultJson, err := json.Marshal(result)
+
 	if err != nil {
 		log.Println("Error converting featureFlagUserMapping to JSON")
 		return utils.ServerError(err)

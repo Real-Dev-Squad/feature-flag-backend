@@ -27,6 +27,8 @@ func init() {
 func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"Id": {

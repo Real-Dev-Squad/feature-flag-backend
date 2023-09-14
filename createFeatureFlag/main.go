@@ -60,6 +60,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	db := database.CreateDynamoDB()
 
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	
 	err := json.Unmarshal([]byte(req.Body), &createFeatureFlagRequest)
 	if err != nil {
 		log.Printf("Error unmarshal request body: \n %v", err)

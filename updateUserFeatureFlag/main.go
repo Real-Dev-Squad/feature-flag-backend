@@ -30,6 +30,8 @@ func processUpdateByIds(userId string, flagId string, requestBody models.UpdateU
 
 	db := database.CreateDynamoDB()
 
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	
 	input := &dynamodb.UpdateItemInput{
 		TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
 		Key: map[string]*dynamodb.AttributeValue{

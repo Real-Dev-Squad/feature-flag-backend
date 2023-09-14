@@ -29,6 +29,8 @@ func processPutById(userId string, flagId string, featureFlagUserMapping models.
 
 	db := database.CreateDynamoDB()
 
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+
 	item, err := dynamodbattribute.MarshalMap(featureFlagUserMapping)
 	if err != nil {
 		return nil, err
