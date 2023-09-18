@@ -90,7 +90,7 @@ For more detailed information about the API contracts, please refer to the [API 
 The Feature Flag Backend project uses DynamoDB as the database. The data model consists of two main entities:
 
 ### FeatureFlag 
-- Id (string) **Partition key**
+- id (string) **Partition key**
 - name (string) (GSI)
 - description (string)
 - createdAt (number)
