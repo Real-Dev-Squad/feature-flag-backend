@@ -15,6 +15,7 @@ import (
 
 var raterLimiterFunctionName string
 var found bool
+var requestLimitTableName = "requestLimit"
 
 func init() {
 	raterLimiterFunctionName, found = os.LookupEnv("RateLimiterFunction")
@@ -26,7 +27,7 @@ func init() {
 func CheckRequestAllowed(db *dynamodb.DynamoDB, concurrencyValue int) {
 	// check the quota values
 	requestLimitInput := &dynamodb.GetItemInput{
-		TableName: aws.String("RequestLimit"),
+		TableName: aws.String(requestLimitTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"limitType": {
 				S: aws.String("pendingLimit"),
@@ -59,7 +60,7 @@ func CheckRequestAllowed(db *dynamodb.DynamoDB, concurrencyValue int) {
 		}
 
 		putItemInput := &dynamodb.PutItemInput{
-			TableName: aws.String("RequestLimit"),
+			TableName: aws.String(requestLimitTableName),
 			Item:      marshalledInput,
 		}
 
