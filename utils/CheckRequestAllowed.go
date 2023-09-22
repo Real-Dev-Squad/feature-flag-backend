@@ -67,6 +67,7 @@ func CheckRequestAllowed(db *dynamodb.DynamoDB, concurrencyValue int) {
 		_, err = db.PutItem(putItemInput)
 		if err != nil {
 			log.Println("Error in updating the request limit counters", err)
+			return
 		}
 		log.Println("The updated limit is ", requestLimitUpdateInput.LimitValue)
 	} else {
