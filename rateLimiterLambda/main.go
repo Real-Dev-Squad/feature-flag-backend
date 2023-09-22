@@ -19,7 +19,7 @@ type Request struct {
 	FunctionNames []string `json:"functionNames"`
 }
 
-type InputData struct {
+type LambdaConcurrencyValue struct {
 	IntValue int `json:"intValue"`
 }
 
@@ -84,8 +84,8 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 	}
 	lambdaClient := lambda.New(sess)
 
-	var inputData InputData
-	if err := json.Unmarshal(event, &inputData); err != nil {
+	var lambdaConcurrencyValue LambdaConcurrencyValue
+	if err := json.Unmarshal(event, &lambdaConcurrencyValue); err != nil {
 		return events.APIGatewayProxyResponse{
 			Body: "Unable to read input",
 			StatusCode: http.StatusBadRequest,
@@ -103,12 +103,10 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 		},
 	}
 
-	log.Printf("The request data is %d", inputData.IntValue)
-
 	for _, functionName := range request.FunctionNames {
 		input := &lambda.PutFunctionConcurrencyInput{
 			FunctionName:                 &functionName,
-			ReservedConcurrentExecutions: aws.Int64(int64(inputData.IntValue)),
+			ReservedConcurrentExecutions: aws.Int64(int64(lambdaConcurrencyValue.IntValue)),
 		}
 
 		log.Println("is the function name", input.FunctionName)
@@ -121,7 +119,7 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 			}, err
 		}
 
-		log.Printf("Changed the reserved concurrency for the function %s\n to %d", functionName, inputData.IntValue)
+		log.Printf("Changed the reserved concurrency for the function %s\n to %d", functionName, lambdaConcurrencyValue.IntValue)
 	}
 	return events.APIGatewayProxyResponse{
 		Body:       "Changed the reserved concurrency of the lambda function GetFeatureFlagFunction",
