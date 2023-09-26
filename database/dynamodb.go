@@ -169,7 +169,7 @@ func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string)
 
 	db := CreateDynamoDB()
 
-	// utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
 
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
