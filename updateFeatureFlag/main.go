@@ -14,7 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -70,7 +69,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 	}
 
 	featureFlag := new(utils.FeatureFlagResponse)
-	err = dynamodbattribute.UnmarshalMap(result.Attributes, &featureFlag)
+	err = database.UnmarshalMap(result.Attributes, &featureFlag)
 
 	if err != nil {
 		log.Printf("Error is %v", err)

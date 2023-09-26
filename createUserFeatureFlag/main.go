@@ -15,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -31,7 +30,7 @@ func processPutById(userId string, flagId string, featureFlagUserMapping models.
 
 	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
 
-	item, err := dynamodbattribute.MarshalMap(featureFlagUserMapping)
+	item, err := database.MarshalMap(featureFlagUserMapping)
 	if err != nil {
 		return nil, err
 	}
