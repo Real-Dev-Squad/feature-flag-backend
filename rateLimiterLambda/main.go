@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
@@ -103,24 +104,33 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 		},
 	}
 
+	var wg sync.WaitGroup
 	for _, functionName := range request.FunctionNames {
-		input := &lambda.PutFunctionConcurrencyInput{
-			FunctionName:                 &functionName,
-			ReservedConcurrentExecutions: aws.Int64(int64(lambdaConcurrencyValue.IntValue)),
-		}
-
-		log.Println("is the function name", input.FunctionName)
-		_, err := lambdaClient.PutFunctionConcurrency(input)
-		if err != nil {
-			log.Printf("Error in setting the concurrency, for the lambda name %s : %v", functionName, err)
-			return events.APIGatewayProxyResponse{
-				Body:       "Error in changing the reserved concurrency",
-				StatusCode: 500,
-			}, err
-		}
-
-		log.Printf("Changed the reserved concurrency for the function %s\n to %d", functionName, lambdaConcurrencyValue.IntValue)
+		// Increment the WaitGroup counter
+		wg.Add(1)
+	
+		// Start a goroutine to update the concurrency for the Lambda function
+		go func(fn string) {
+			defer wg.Done()
+	
+			input := &lambda.PutFunctionConcurrencyInput{
+				FunctionName:                 &fn,
+				ReservedConcurrentExecutions: aws.Int64(int64(lambdaConcurrencyValue.IntValue)),
+			}
+	
+			log.Println("Is the function name", fn)
+			_, err := lambdaClient.PutFunctionConcurrency(input)
+			if err != nil {
+				log.Printf("Error in setting the concurrency for the lambda name %s: %v", fn, err)
+				utils.ServerError(err)
+			}
+	
+			log.Printf("Changed the reserved concurrency for the function %s to %d", fn, lambdaConcurrencyValue.IntValue)
+		}(functionName)
 	}
+	
+	// Wait for all goroutines to finish
+	wg.Wait()
 	return events.APIGatewayProxyResponse{
 		Body:       "Changed the reserved concurrency of the lambda function GetFeatureFlagFunction",
 		StatusCode: 200,
