@@ -13,15 +13,17 @@ Globals:
         UpdateUserFeatureFlagFunction: feature-flag-backend-UpdateUserFeatureFlagFunction-4uOLMOFjOntY
         GetUserFeatureFlagsFunction: feature-flag-backend-GetUserFeatureFlagsFunction-yqy9D1QsjzOC
         GetUserFeatureFlagFunction: feature-flag-backend-GetUserFeatureFlagFunction-hMf1qBMVQLhi
-        RateLimiterFunction: feature-flag-backend-RateLimiterFunction-4CxLCmGRkXpW
+        RateLimiterFunction: feature-flag-backend-RateLimiterFunction-TUAIVAMf6B2j
 
 Resources:
   HealthCheckFunction:
     Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: health-check/
-      Handler: health-check
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64  
       Events:
@@ -33,10 +35,12 @@ Resources:
 
   RateLimiterFunction:
     Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: rateLimiterLambda/
-      Handler: main
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64  
       Events:
@@ -45,115 +49,139 @@ Resources:
           Properties:
             Path: /mark-concurrency-zero
             Method: PATCH
+
   GetFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: getFeatureFlagById/
-      Handler: getFeatureFlagById
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64
       Events:
         CatchAll:
           Type: Api
-          Properties: 
+          Properties:
             Path: /feature-flags/{flagId}
-            Method: GET 
+            Method: GET
+
   CreateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x  
     Properties:
       CodeUri: createFeatureFlag/
-      Handler: createFeatureFlag
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64
-      Events: 
+      Events:
         CatchAll:
           Type: Api
           Properties:
             Path: /feature-flags/
             Method: POST
+
   UpdateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
-    Properties: 
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
       CodeUri: updateFeatureFlag/
-      Handler: updateFeatureFlag
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64
-      Events: 
-        CatchAll: 
+      Events:
+        CatchAll:
           Type: Api
           Properties:
             Path: /feature-flags/{flagId}
             Method: PATCH
+
   GetAllFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
-    Properties: 
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
       CodeUri: getAllFeatureFlags/
-      Handler: getAllFeatureFlags
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64
-      Events: 
-        CatchAll: 
+      Events:
+        CatchAll:
           Type: Api
           Properties:
             Path: /feature-flags/
             Method: GET
+
   GetUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: getUserFeatureFlag/
-      Handler: getUserFeatureFlag
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64
       Events:
         CatchAll:
           Type: Api
-          Properties: 
+          Properties:
             Path: /users/{userId}/feature-flags/{flagId}
             Method: GET
+
   GetUserFeatureFlagsFunction:
     Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: getUserFeatureFlags/
-      Handler: getUserFeatureFlags
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64
       Events:
         CatchAll:
           Type: Api
-          Properties: 
+          Properties:
             Path: /users/{userId}/feature-flags
             Method: GET
+
   CreateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: createUserFeatureFlag/
-      Handler: createUserFeatureFlag
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64
       Events:
         CatchAll:
           Type: Api
-          Properties: 
+          Properties:
             Path: /users/{userId}/feature-flags/{flagId}
             Method: POST
+
   UpdateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
     Properties:
       CodeUri: updateUserFeatureFlag/
-      Handler: updateUserFeatureFlag
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2
       Architectures:
         - x86_64
       Events:
         CatchAll:
           Type: Api
-          Properties: 
+          Properties:
             Path: /users/{userId}/feature-flags/{flagId}
             Method: PATCH
