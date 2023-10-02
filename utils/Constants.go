@@ -19,4 +19,5 @@ const (
 	UpdatedAt                            = "updatedAt"
 	UserId                               = "userId"
 	FlagId                               = "flagId"
+	ConcurrencyDisablingLambda           = 0
 )
