@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
@@ -36,7 +35,7 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 		Status:      utils.ENABLED,
 	}
 
-	item, err := dynamodbattribute.MarshalMap(featureFlag)
+	item, err := database.MarshalMap(featureFlag)
 	if err != nil {
 		log.Printf("Error marshalling object to DynamoDB AttributeValue: \n %v", err)
 		return err
@@ -60,6 +59,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	db := database.CreateDynamoDB()
 
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	
 	err := json.Unmarshal([]byte(req.Body), &createFeatureFlagRequest)
 	if err != nil {
 		log.Printf("Error unmarshal request body: \n %v", err)

@@ -44,6 +44,8 @@ func getAllFeatureFlags(db *dynamodb.DynamoDB) ([]utils.FeatureFlagResponse, err
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	
 	featureFlagsResponse, err := getAllFeatureFlags(db)
 
 	if err != nil {
