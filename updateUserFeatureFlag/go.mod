@@ -3,7 +3,7 @@ module updateUserFeatureFlag
 go 1.20
 
 require (
-	github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20231002185428-1ab29298fc37
+	github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20231006175112-8daf955a8572
 	github.com/aws/aws-lambda-go v1.41.0
 	github.com/aws/aws-sdk-go v1.44.284
 	github.com/go-playground/validator/v10 v10.14.1
