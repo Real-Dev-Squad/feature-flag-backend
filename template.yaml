@@ -13,7 +13,7 @@ Globals:
         UpdateUserFeatureFlagFunction: feature-flag-backend-UpdateUserFeatureFlagFunction-4uOLMOFjOntY
         GetUserFeatureFlagsFunction: feature-flag-backend-GetUserFeatureFlagsFunction-yqy9D1QsjzOC
         GetUserFeatureFlagFunction: feature-flag-backend-GetUserFeatureFlagFunction-hMf1qBMVQLhi
-        RateLimiterFunction: feature-flag-backend-RateLimiterFunction-TUAIVAMf6B2j
+        RateLimiterFunction: feature-flag-backend-RateLimiterFunction-eJ4eAJ1Pft9D
 
 Resources:
   HealthCheckFunction:
@@ -53,7 +53,7 @@ Resources:
   GetFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: getFeatureFlagById/
       Handler: bootstrap
