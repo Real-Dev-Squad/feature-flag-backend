@@ -19,7 +19,7 @@ Resources:
   HealthCheckFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: health-check/
       Handler: bootstrap
@@ -36,7 +36,7 @@ Resources:
   RateLimiterFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: rateLimiterLambda/
       Handler: bootstrap
@@ -70,7 +70,7 @@ Resources:
   CreateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x  
+      BuildMethod: makefile
     Properties:
       CodeUri: createFeatureFlag/
       Handler: bootstrap
@@ -87,7 +87,7 @@ Resources:
   UpdateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: updateFeatureFlag/
       Handler: bootstrap
@@ -104,7 +104,7 @@ Resources:
   GetAllFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: getAllFeatureFlags/
       Handler: bootstrap
@@ -121,7 +121,7 @@ Resources:
   GetUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: getUserFeatureFlag/
       Handler: bootstrap
@@ -138,7 +138,7 @@ Resources:
   GetUserFeatureFlagsFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: getUserFeatureFlags/
       Handler: bootstrap
@@ -155,7 +155,7 @@ Resources:
   CreateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: createUserFeatureFlag/
       Handler: bootstrap
@@ -172,7 +172,7 @@ Resources:
   UpdateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: go1.x
+      BuildMethod: makefile
     Properties:
       CodeUri: updateUserFeatureFlag/
       Handler: bootstrap
