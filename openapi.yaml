@@ -2,12 +2,12 @@ openapi: 3.0.0
 info:
   title: Feature flag API
   version: 1.0.0
-  description: This is API contract for feature flag service.
+  description: This is an API contract for feature flag service.
 tags:
   - name: feature-flags
-    description: Everything about feature flags
-  - name: featureFlags-User
-    description: Details about feature flags on Users.
+    description: APIs for creating, updating, and fetching feature flag data
+  - name: feature-flag-user-mapping
+    description: APIs for creating, updating, and fetching data about the mapping between feature flag IDs and user IDs
   
 paths:
   /feature-flags:
@@ -22,13 +22,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/ApiResponses/feature-flags'
+                $ref: '#/components/schemas/feature-flag-response'
         '404':
-          description: Feature flags not found.
+          description: No feature flags found.
     post:
       tags:
         - feature-flags
-      summary: Create a new feature flag
+      summary: Creates a new feature flag
       description: Creates a new feature flag in the system
       requestBody:
         required: true
@@ -38,9 +38,9 @@ paths:
               $ref: '#/ApiRequests/feature-flag'
       responses:
         '201':
-          description: Successful response
-        '405': 
-          description: Invalid input
+          description: Created feature flag sucessfully
+        '400': 
+          description: Check the request body passed name, description and userId are required
   /feature-flags/{flagId}:
     get:
       tags:
@@ -51,7 +51,7 @@ paths:
         - name: flagId
           in: path
           required: true
-          description: ID of the user
+          description: feature flag Id
           schema:
             type: string
       responses:
@@ -60,11 +60,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/ApiResponses/feature-flag'
+                $ref: '#/components/schemas/feature-flag-response'
         '404':
-          description: feature flag not found
-        '400':
-          description: Invalid feature flag Id supplied
+          description: Feature Flag not found
     patch:
       tags:
         - feature-flags
@@ -86,29 +84,40 @@ paths:
       responses:
         '200':
           description: Successful response
-        
-          
-  /users/{userId}/feature-flags/:
-    get: 
-      tags:
-        - featureFlags-User
-      summary: Lists all the feature flags for the user
-      description: Shows the feature flag for a user.
-      responses:
-        '200':
-          description: Successful response
           content:
             application/json:
-              schema: 
-                $ref: '#/ApiResponses/User-feature-flag-responses'
-        '404':
-          description: Any feature flags not enabled for the user
-
+              schema:
+                $ref: '#/components/schemas/feature-flag-response'
+        '400':
+          description: Check the request body passed status and userId are required.
+        
           
+  /users/{userId}/feature-flags:
+    get:
+      tags:
+        - feature-flag-user-mapping
+      summary: Get all feature flags for user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Id of user
+          schema: 
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/get-all-user-feature-flag'
+        '404':
+          description: "Not found"
+          content: 
+            application/json:
+              schema:
+                type: string
+                example: User feature flags not found
   /users/{userId}/feature-flag/{flagId}:
     get:
       tags:
-        - featureFlags-User
+        - feature-flag-user-mapping
       summary: Get feature flag for user
       description: Get if the flag is set for the user
       parameters:
@@ -126,17 +135,18 @@ paths:
             type: string
       responses:
         '200':
-          description: Successful response
+          $ref: '#/components/responses/get-user-feature-flag'
+        '404':
+          description: "Not found"
           content: 
             application/json:
-              schema: 
-                $ref: '#/ApiResponses/User-feature-flag-response'
-        '400':
-          description: Invalid input passed
+              schema:
+                type: string
+                example: User feature flag not found
           
     post:
       tags:
-        - featureFlags-User
+        - feature-flag-user-mapping
       summary: To enable feature flag for a user
       parameters:
         - name: userId
@@ -152,14 +162,16 @@ paths:
           description: Id of the flag
           schema: 
             type: string
+      requestBody:
+        $ref: '#/components/requestBodies/user-feature-flag'
       responses:
-        '201':
-          description: Created successful
-        '405':
-          description: Invalid input
+        '200':
+          $ref: '#/components/responses/create-user-feature-flag'
+        '400':
+          $ref: '#/components/responses/bad-request-user-feature-flag'
     patch:
       tags:
-        - featureFlags-User
+        - feature-flag-user-mapping
       summary: To update feature flag for a user
       parameters:
         - name: userId
@@ -176,93 +188,130 @@ paths:
           schema: 
             type: string
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/ApiRequests/featureflag-user-update'
+        $ref: '#/components/requestBodies/user-feature-flag'
 
       responses:
         '200':
-          description: successful response
-        '405':
-          description: Invalid input
-       
-    
+          $ref: '#/components/responses/update-user-feature-flag'
+        '400':
+          $ref: '#/components/responses/bad-request-user-feature-flag'
+                 
 
-ApiResponses:
-  feature-flag:
-    type: object
-    properties: 
-      flagId:
-        type: string
-      flagName: 
-        type: string
-      flagDescription:
-        type: string
-      deactivated:
-        type: boolean
-        
-  User-feature-flag-response:
-    type: object
-    properties:
-      userId:
-        type: string
-      flagId:
-        type: string
-      enabled:
-        type: boolean
-  User-feature-flag-responses:
-    type: array
-    items: 
+components:
+  schemas:
+    user-feature-flag-response:
       type: object
       properties:
         userId:
-          type: string
+            type: string
         flagId: 
           type: string
-        enabled: 
-          type: boolean
-          
-  feature-flags:        
-    type: array
-    items:
+        status: 
+          type: string
+        createdAt: 
+          type: number
+        createdBy: 
+          type: string
+        updatedAt: 
+          type: number
+        upadtedBy: 
+          type: string
+    feature-flag-response:
       type: object
       properties:
-        flagId:
+        Id: 
           type: string
-        flagName:
+        Name:
           type: string
-        flagDescription:
+        Description:
           type: string
-        deactivated:
-          type: boolean
+        Status: 
+          type: string
+    user-feature-flag-responses:
+      type: array
+      items:
+        $ref: '#/components/schemas/user-feature-flag-response'
+    status-validation-user-feature-flag:
+      type: string
+      example: Allowed values of Status are ENABLED, DISABLED
+    request-validation-user-feature-flag:
+      type: string
+      example: Check the request body passed status and userId are required.
 
-ApiRequests:
-  feature-flag:
-    type: object
-    properties:
-      flagId:
-        type: string
-      flagName: 
-        type: string
-      flagDescription:
-        type: string
-  feature-flag-update:
-    type: object
-    properties: 
-      flagId:
-        type: string
-      flagName:
-        type: string
-      status:
-        type: string
-      flagDescription:
-        type: string
-  
-  featureflag-user-update:
-    type: object
-    properties:
-      enabled:  
-        type: boolean
-    
+  requestBodies:
+    user-feature-flag:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              userId:
+                type: string
+              status: 
+                type: string
+    create-feature-flag:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: 
+              Name: 
+                type: string
+              Description:
+                type: string
+              UserId: 
+                type: string
+            required:
+              - Name
+              - Description
+              - UserId
+    update-feature-flag:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: 
+              Status:
+                type: string
+              UserId:
+                type: string
+            required:
+              - Status
+              - UserId
+
+  responses:
+    update-user-feature-flag:
+      description: "Updated successfully"
+      content: 
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user-feature-flag-response'
+    create-user-feature-flag:
+      description: "Created successfully"
+      content: 
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user-feature-flag-response'
+    get-all-user-feature-flag:
+      description: "Fetched successfully"
+      content: 
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user-feature-flag-responses'
+    get-user-feature-flag:
+      description: "Fetched successfully"
+      content: 
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user-feature-flag-response'
+    bad-request-user-feature-flag:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/request-validation-user-feature-flag'
+              - $ref: '#/components/schemas/status-validation-user-feature-flag'
