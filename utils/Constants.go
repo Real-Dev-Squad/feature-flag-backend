@@ -4,11 +4,12 @@ const (
 	ENV                                  = "ENVIRONMENT"
 	DEV                                  = "DEVELOPMENT"
 	PROD                                 = "PRODUCTION"
-	FEATURE_FLAG_TABLE_NAME              = "FeatureFlag"
-	FEATURE_FLAG_USER_MAPPING_TABLE_NAME = "FeatureFlagUserMapping"
+	TEST                                 = "TESTING"
+	FEATURE_FLAG_TABLE_NAME              = "featureFlag"
+	FEATURE_FLAG_USER_MAPPING_TABLE_NAME = "featureFlagUserMapping"
 	ENABLED                              = "ENABLED"
 	DISABLED                             = "DISABLED"
-	Id                                   = "Id"
+	Id                                   = "id"
 	Name                                 = "name"
 	Description                          = "description"
 	CreatedAt                            = "createdAt"
@@ -18,4 +19,5 @@ const (
 	UpdatedAt                            = "updatedAt"
 	UserId                               = "userId"
 	FlagId                               = "flagId"
+	ConcurrencyDisablingLambda           = 0
 )
