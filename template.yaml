@@ -5,15 +5,15 @@ Globals:
     Environment:
       Variables:
         ENVIRONMENT: PRODUCTION
-        CreateFeatureFlagFunction: feature-flag-backend-CreateFeatureFlagFunction-wXFKT4vgQ23f
-        CreateUserFeatureFlagFunction: feature-flag-backend-CreateUserFeatureFlagFunction-0Sqm8sdh728h
-        GetFeatureFlagFunction: feature-flag-backend-GetFeatureFlagFunction-oGYQvvvOq7zx
-        GetAllFeatureFlagFunction: feature-flag-backend-GetAllFeatureFlagFunction-VIxqiMGWX4Jr
-        UpdateFeatureFlagFunction: feature-flag-backend-UpdateFeatureFlagFunction-TS4MZL51Qmzv
-        UpdateUserFeatureFlagFunction: feature-flag-backend-UpdateUserFeatureFlagFunction-4uOLMOFjOntY
-        GetUserFeatureFlagsFunction: feature-flag-backend-GetUserFeatureFlagsFunction-yqy9D1QsjzOC
-        GetUserFeatureFlagFunction: feature-flag-backend-GetUserFeatureFlagFunction-hMf1qBMVQLhi
-        RateLimiterFunction: feature-flag-backend-RateLimiterFunction-eJ4eAJ1Pft9D
+        CreateFeatureFlagFunction: FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR
+        CreateUserFeatureFlagFunction: FeatureFlagBackendProdLam-CreateUserFeatureFlagFun-Fi1GnCD4KsBu
+        GetFeatureFlagFunction: FeatureFlagBackendProdLambd-GetFeatureFlagFunction-I2kT1C4qt7i8
+        GetAllFeatureFlagFunction: FeatureFlagBackendProdLam-GetAllFeatureFlagFunctio-kqYPpHWHnPqR
+        UpdateFeatureFlagFunction: FeatureFlagBackendProdLam-UpdateFeatureFlagFunctio-9g8Vbr3cPzHL
+        UpdateUserFeatureFlagFunction: FeatureFlagBackendProdLam-UpdateUserFeatureFlagFun-FkeJ3SHwYIjo
+        GetUserFeatureFlagsFunction: FeatureFlagBackendProdLam-GetUserFeatureFlagsFunct-Qj4UvchESEwz
+        GetUserFeatureFlagFunction: FeatureFlagBackendProdLam-GetUserFeatureFlagFuncti-X4iHFCSiLo92
+        RateLimiterFunction: FeatureFlagBackendProdLambdas-RateLimiterFunction-WubbBb4Naxsm
 
 Resources:
   HealthCheckFunction:
