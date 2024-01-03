@@ -34,7 +34,7 @@ jobs:
       - uses: aws-actions/setup-sam@v1
 
       - name: Build resources
-        run: sam build --template ${SAM_TEMPLATE} --use-container
+        run: sam build --template ${SAM_TEMPLATE}
 
       - name: Assume the pipeline user role
         env:

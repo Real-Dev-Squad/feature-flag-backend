@@ -15,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -29,6 +28,8 @@ func processUpdateByIds(userId string, flagId string, requestBody utils.UpdateFe
 
 	db := database.CreateDynamoDB()
 
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	
 	input := &dynamodb.UpdateItemInput{
 		TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
 		Key: map[string]*dynamodb.AttributeValue{

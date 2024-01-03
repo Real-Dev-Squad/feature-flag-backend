@@ -14,7 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -26,6 +25,8 @@ func init() {
 
 func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
+
+	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
 
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -68,7 +69,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 	}
 
 	featureFlag := new(utils.FeatureFlagResponse)
-	err = dynamodbattribute.UnmarshalMap(result.Attributes, &featureFlag)
+	err = database.UnmarshalMap(result.Attributes, &featureFlag)
 
 	if err != nil {
 		log.Printf("Error is %v", err)
@@ -101,7 +102,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	if err := validate.Struct(&updateFeatureFlagRequest); err != nil {
-		errorMessage := "Check the request body passed status, flagId and userId are required."
+		errorMessage := "Check the request body passed status and userId are required."
 		response := events.APIGatewayProxyResponse{
 			Body:       errorMessage,
 			StatusCode: http.StatusBadRequest,

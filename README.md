@@ -40,7 +40,81 @@ You should have some things pre-installed :
 
 4. **Add tables in DynamoDB**
     - Follow steps 1 to 5 (ignore the last step to add backup) mentioned in [Create a table](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html) development guide under AWS Management Console section
-   - For table names and thier respective keys information refer to the [Data Model](#data-model) section   
+   - For table names and thier respective keys information refer to the [Data Model](#data-model) section
+  
+<details>
+    <Summary>
+        Code snippet for creating tables in local Dynamodb  - This below code needs to be pasted below this line.
+https://github.com/Real-Dev-Squad/feature-flag-backend/blob/1ab29298fc371daffb747752d88f7f23fffe218c/database/dynamodb.go#L61
+    </Summary>
+
+```
+    if env == utils.DEV || env == utils.TEST {
+		input := &dynamodb.ListTablesInput{}
+		result, err := db.ListTables(input)
+		if err != nil {
+			log.Printf("Error listing tables \n %v", err)
+			utils.ServerError(errors.New("Error listing tables"))
+		}
+
+		if len(result.TableNames) == 0 {
+			tableSchemas := []dynamodb.CreateTableInput{
+				{
+					TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
+					KeySchema: []*dynamodb.KeySchemaElement{
+						{
+							AttributeName: aws.String(utils.UserId),
+							KeyType:       aws.String("HASH"),
+						},
+						{
+							AttributeName: aws.String(utils.FlagId),
+							KeyType:       aws.String("RANGE"),
+						},
+					},
+					AttributeDefinitions: []*dynamodb.AttributeDefinition{
+						{
+							AttributeName: aws.String(utils.UserId),
+							AttributeType: aws.String("S"),
+						},
+						{
+							AttributeName: aws.String(utils.FlagId),
+							AttributeType: aws.String("S"),
+						},
+					},
+					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+						ReadCapacityUnits:  aws.Int64(5),
+						WriteCapacityUnits: aws.Int64(5),
+					},
+				},
+				{
+					TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
+					KeySchema: []*dynamodb.KeySchemaElement{
+						{
+							AttributeName: aws.String(utils.Id),
+							KeyType:       aws.String("HASH"),
+						},
+					},
+					AttributeDefinitions: []*dynamodb.AttributeDefinition{
+						{
+							AttributeName: aws.String(utils.Id),
+							AttributeType: aws.String("S"),
+						},
+					},
+					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+						ReadCapacityUnits:  aws.Int64(5),
+						WriteCapacityUnits: aws.Int64(5),
+					},
+				},
+			}
+			err := createTables(db, tableSchemas)
+			if err != nil {
+				log.Printf("Error setting up local dynamodb in %v env \n %v", env, err)
+				utils.ServerError(errors.New("Error setting up local dynamodb in DEV env"))
+			}
+		}
+	}
+```
+</details>
 
 ## Run
 
@@ -90,7 +164,7 @@ For more detailed information about the API contracts, please refer to the [API 
 The Feature Flag Backend project uses DynamoDB as the database. The data model consists of two main entities:
 
 ### FeatureFlag 
-- Id (string) **Partition key**
+- id (string) **Partition key**
 - name (string) (GSI)
 - description (string)
 - createdAt (number)
