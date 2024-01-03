@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -25,7 +24,7 @@ func init() {
 	validate = validator.New()
 }
 
-func processUpdateByIds(userId string, flagId string, requestBody models.UpdateUserMapping) (*models.FeatureFlagUserMapping, error) {
+func processUpdateByIds(userId string, flagId string, requestBody utils.UpdateFeatureFlagUserMappingRequest) (*utils.FeatureFlagUserMappingResponse, error) {
 
 	db := database.CreateDynamoDB()
 
@@ -34,10 +33,10 @@ func processUpdateByIds(userId string, flagId string, requestBody models.UpdateU
 	input := &dynamodb.UpdateItemInput{
 		TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
 		Key: map[string]*dynamodb.AttributeValue{
-			utils.UserId: {
+			utils.UserId: { // partition key
 				S: aws.String(userId),
 			},
-			utils.FlagId: {
+			utils.FlagId: { // sort key
 				S: aws.String(flagId),
 			},
 		},
@@ -69,8 +68,8 @@ func processUpdateByIds(userId string, flagId string, requestBody models.UpdateU
 		return nil, err
 	}
 
-	featureFlagUserMapping := new(models.FeatureFlagUserMapping)
-	err = database.UnmarshalMap(result.Attributes, &featureFlagUserMapping)
+	featureFlagUserMapping := new(utils.FeatureFlagUserMappingResponse)
+	err = dynamodbattribute.UnmarshalMap(result.Attributes, &featureFlagUserMapping)
 
 	if err != nil {
 		return nil, err
@@ -82,7 +81,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	userId := req.PathParameters["userId"]
 	flagId := req.PathParameters["flagId"]
 
-	var requestBody models.UpdateUserMapping
+	var requestBody utils.UpdateFeatureFlagUserMappingRequest
 	err := json.Unmarshal([]byte(req.Body), &requestBody)
 	if err != nil {
 		log.Printf("Error unmarshal request body: \n %v", err)
