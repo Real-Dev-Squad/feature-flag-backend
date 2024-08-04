@@ -44,11 +44,16 @@ Resources:
       Architectures:
         - x86_64  
       Events:
-        CatchAll:
+        MarkConcurrencyZero:
           Type: Api
           Properties:
             Path: /mark-concurrency-zero
             Method: PATCH
+        ResetLimit:
+          Type: Api
+          Properties:
+            Path: /reset-limit
+            Method: POST
 
   GetFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
