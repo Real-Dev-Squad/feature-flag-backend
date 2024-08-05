@@ -154,7 +154,50 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 			}, nil
 		}
 
-		err := updateConcurrencyLimitInDB(concurrencyLimitRequest.PendingLimit)
+		sess, err := session.NewSession()
+		if err != nil {
+			log.Println("Error in creation of AWS session, please contact on #feature-flag-service discord channel.")
+		}
+		lambdaClient := lambda.New(sess)
+
+		var request = Request{
+			FunctionNames: []string{createFeatureFlagFunctionName,
+				createUserFeatureFlagFunctionName,
+				getFeatureFlagFunctionName,
+				getUserFeatureFlagFunctionName,
+				getAllFeatureFlagsFunctionName,
+				updateFeatureFlagFunctionName,
+				getUserFeatureFlagsFunctionName,
+			},
+		}
+
+		var wg sync.WaitGroup
+		for _, functionName := range request.FunctionNames {
+			// Increment the WaitGroup counter
+			wg.Add(1)
+
+			// Start a goroutine to delete the concurrency for the Lambda function
+			go func(fn string) {
+				defer wg.Done()
+
+				input := &lambda.DeleteFunctionConcurrencyInput{
+					FunctionName: &fn,
+				}
+
+				_, err := lambdaClient.DeleteFunctionConcurrency(input)
+				if err != nil {
+					log.Printf("Error in resetting the concurrency for the lambda name %s: %v", fn, err)
+					utils.ServerError(err)
+				}
+
+				log.Printf("Reset the reserved concurrency for the function %s", fn)
+			}(functionName)
+		}
+
+		// Wait for all goroutines to finish
+		wg.Wait()
+
+		err = updateConcurrencyLimitInDB(concurrencyLimitRequest.PendingLimit)
 		if err != nil {
 			return events.APIGatewayProxyResponse{
 				Body:       "Failed to update concurrency limit in database",
