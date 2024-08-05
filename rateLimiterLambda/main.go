@@ -8,7 +8,9 @@ import (
 	"os"
 	"sync"
 
+	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
+	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	lambda1 "github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -26,31 +28,25 @@ type LambdaConcurrencyValue struct {
 	IntValue int `json:"intValue"`
 }
 
-var (
-	createFeatureFlagFunctionName     string
-	getUserFeatureFlagFunctionName    string
-	createUserFeatureFlagFunctionName string
-	getAllFeatureFlagsFunctionName    string
-	getUserFeatureFlagsFunctionName   string
-	updateFeatureFlagFunctionName     string
-	getFeatureFlagFunctionName        string
-	getUserFeatureFlagFunction        string
-	db                                *dynamodb.DynamoDB
-	requestLimitTableName             = "requestLimit"
-)
+type ConcurrencyLimitRequest struct {
+	PendingLimit int16 `json:"pendingLimit"`
+}
+
+var createFeatureFlagFunctionName string
+var getUserFeatureFlagFunctionName string
+var createUserFeatureFlagFunctionName string
+var getAllFeatureFlagsFunctionName string
+var getUserFeatureFlagsFunctionName string
+var updateFeatureFlagFunctionName string
+var getFeatureFlagFunctionName string
+var getUserFeatureFlagFunction string
+var requestLimitTableName = "requestLimit"
 
 func init() {
-	sess, err := session.NewSession()
-	if err != nil {
-		log.Fatalf("Failed to create AWS session: %v", err)
-	}
-
-	db = dynamodb.New(sess)
-
-	env, found := os.LookupEnv("ENV")
+	env, found := os.LookupEnv(utils.ENV)
 	if !found {
 		log.Print("Env variable not set, making it by default PROD")
-		os.Setenv("ENV", "PROD")
+		os.Setenv(utils.ENV, utils.PROD)
 	}
 	log.Printf("The env is %v", env)
 
@@ -88,75 +84,87 @@ func init() {
 	if !found {
 		log.Println("get feature flag function name not being set")
 	}
+
 }
 
-func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxyResponse, error) {
-	sess, err := session.NewSession()
-	if err != nil {
-		log.Println("Error in creation of AWS session, please contact on #feature-flag-service discord channel.")
-	}
-	lambdaClient := lambda.New(sess)
+func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if event.Path == "/mark-concurrency-zero" {
+		sess, err := session.NewSession()
+		if err != nil {
+			log.Println("Error in creation of AWS session, please contact on #feature-flag-service discord channel.")
+		}
+		lambdaClient := lambda.New(sess)
 
-	var lambdaConcurrencyValue LambdaConcurrencyValue
-	if err := json.Unmarshal(event, &lambdaConcurrencyValue); err != nil {
-		return events.APIGatewayProxyResponse{
-			Body:       "Unable to read input",
-			StatusCode: http.StatusBadRequest,
-		}, nil
-	}
+		var lambdaConcurrencyValue LambdaConcurrencyValue
+		if err := json.Unmarshal([]byte(event.Body), &lambdaConcurrencyValue); err != nil {
+			return events.APIGatewayProxyResponse{
+				Body:       "Unable to read input",
+				StatusCode: http.StatusBadRequest,
+			}, nil
+		}
 
-	var request = Request{
-		FunctionNames: []string{
-			createFeatureFlagFunctionName,
-			createUserFeatureFlagFunctionName,
-			getFeatureFlagFunctionName,
-			getUserFeatureFlagFunctionName,
-			getAllFeatureFlagsFunctionName,
-			updateFeatureFlagFunctionName,
-			getUserFeatureFlagsFunctionName,
-		},
-	}
+		var request = Request{
+			FunctionNames: []string{createFeatureFlagFunctionName,
+				createUserFeatureFlagFunctionName,
+				getFeatureFlagFunctionName,
+				getUserFeatureFlagFunctionName,
+				getAllFeatureFlagsFunctionName,
+				updateFeatureFlagFunctionName,
+				getUserFeatureFlagsFunctionName,
+			},
+		}
 
-	var wg sync.WaitGroup
-	for _, functionName := range request.FunctionNames {
-		wg.Add(1)
-		go func(fn string) {
-			defer wg.Done()
-			input := &lambda.PutFunctionConcurrencyInput{
-				FunctionName:                 &fn,
-				ReservedConcurrentExecutions: aws.Int64(int64(lambdaConcurrencyValue.IntValue)),
-			}
-			log.Println("Is the function name", fn)
-			_, err := lambdaClient.PutFunctionConcurrency(input)
-			if err != nil {
-				log.Printf("Error in setting the concurrency for the lambda name %s: %v", fn, err)
-			} else {
+		var wg sync.WaitGroup
+		for _, functionName := range request.FunctionNames {
+			// Increment the WaitGroup counter
+			wg.Add(1)
+
+			// Start a goroutine to update the concurrency for the Lambda function
+			go func(fn string) {
+				defer wg.Done()
+
+				input := &lambda.PutFunctionConcurrencyInput{
+					FunctionName:                 &fn,
+					ReservedConcurrentExecutions: aws.Int64(int64(lambdaConcurrencyValue.IntValue)),
+				}
+
+				log.Println("Is the function name", fn)
+				_, err := lambdaClient.PutFunctionConcurrency(input)
+				if err != nil {
+					log.Printf("Error in setting the concurrency for the lambda name %s: %v", fn, err)
+					utils.ServerError(err)
+				}
+
 				log.Printf("Changed the reserved concurrency for the function %s to %d", fn, lambdaConcurrencyValue.IntValue)
-			}
-		}(functionName)
-	}
-	wg.Wait()
+			}(functionName)
+		}
 
-	return events.APIGatewayProxyResponse{
-		Body:       "Changed the reserved concurrency of the lambda functions",
-		StatusCode: 200,
-	}, nil
-}
-
-func resetLimitHandler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxyResponse, error) {
-	var lambdaConcurrencyValue LambdaConcurrencyValue
-	if err := json.Unmarshal(event, &lambdaConcurrencyValue); err != nil {
+		// Wait for all goroutines to finish
+		wg.Wait()
 		return events.APIGatewayProxyResponse{
-			Body:       "Unable to read input",
-			StatusCode: http.StatusBadRequest,
+			Body:       "Changed the reserved concurrency of the lambda function GetFeatureFlagFunction",
+			StatusCode: 200,
 		}, nil
-	}
+	} else if event.Path == "/reset-limit" {
+		var concurrencyLimitRequest ConcurrencyLimitRequest
+		if err := json.Unmarshal([]byte(event.Body), &concurrencyLimitRequest); err != nil {
+			return events.APIGatewayProxyResponse{
+				Body:       "Unable to read input",
+				StatusCode: http.StatusBadRequest,
+			}, nil
+		}
 
-	err := updateConcurrencyLimitInDB(lambdaConcurrencyValue.IntValue)
-	if err != nil {
+		err := updateConcurrencyLimitInDB(concurrencyLimitRequest.PendingLimit)
+		if err != nil {
+			return events.APIGatewayProxyResponse{
+				Body:       "Failed to update concurrency limit in database",
+				StatusCode: http.StatusInternalServerError,
+			}, nil
+		}
+
 		return events.APIGatewayProxyResponse{
-			Body:       "Failed to update concurrency limit in database",
-			StatusCode: http.StatusInternalServerError,
+			Body:       "Successfully updated concurrency limit",
+			StatusCode: http.StatusOK,
 		}, nil
 	}
 
@@ -166,7 +174,10 @@ func resetLimitHandler(ctx context.Context, event json.RawMessage) (events.APIGa
 	}, nil
 }
 
-func updateConcurrencyLimitInDB(limit int) error {
+func updateConcurrencyLimitInDB(limit int16) error {
+
+	db := database.CreateDynamoDB()
+
 	requestLimitInput := &dynamodb.GetItemInput{
 		TableName: aws.String(requestLimitTableName),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -213,28 +224,5 @@ func updateConcurrencyLimitInDB(limit int) error {
 }
 
 func main() {
-	http.HandleFunc("/reset-limit", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
-			ctx := context.Background()
-			event := json.RawMessage{}
-			decoder := json.NewDecoder(r.Body)
-			if err := decoder.Decode(&event); err != nil {
-				http.Error(w, "Unable to read input", http.StatusBadRequest)
-				return
-			}
-
-			response, err := resetLimitHandler(ctx, event)
-			if err != nil {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-
-			w.WriteHeader(response.StatusCode)
-			w.Write([]byte(response.Body))
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
 	lambda1.Start(handler)
 }
