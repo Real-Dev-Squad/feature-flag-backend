@@ -50,6 +50,23 @@ Resources:
             Path: /mark-concurrency-zero
             Method: PATCH
 
+  ResetLimitFunction:
+    Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: resetLimitLambda/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64  
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /reset-limit
+            Method: POST
+
   GetFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
