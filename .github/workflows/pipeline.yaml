@@ -61,7 +61,7 @@ jobs:
             --s3-bucket ${ARTIFACTS_BUCKET} \
             --region ${REGION} \
             --output-template-file packaged.yaml
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: packaged.yaml
           path: packaged.yaml
@@ -100,6 +100,7 @@ jobs:
           CLOUDFORMATION_EXECUTION_ROLE: ${{ secrets.CLOUDFORMATION_EXECUTION_ROLE }}
           PIPELINE_STACK_NAME: ${{ secrets.STACK_NAME }}
           REGION: ${{ secrets.REGION }}
+          ENVIRONMENT: ${{ needs.prepare.outputs.branch_name == 'main' && 'PRODUCTION' || 'DEVELOPMENT' }}
         run: |
           sam deploy --stack-name ${PIPELINE_STACK_NAME} \
             --no-confirm-changeset \
@@ -108,4 +109,5 @@ jobs:
             --region ${REGION} \
             --s3-bucket ${ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
+            --parameter-overrides Environment=${ENVIRONMENT} \
             --role-arn ${CLOUDFORMATION_EXECUTION_ROLE}
