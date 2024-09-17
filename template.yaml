@@ -4,7 +4,7 @@ Globals:
     Timeout: 10
     Environment:
       Variables:
-        ENVIRONMENT: !Ref Environment
+        ENVIRONMENT: PRODUCTION
         CreateFeatureFlagFunction: !If
           - IsProd
           - FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR
