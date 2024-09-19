@@ -5,15 +5,53 @@ Globals:
     Environment:
       Variables:
         ENVIRONMENT: PRODUCTION
-        CreateFeatureFlagFunction: FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR
-        CreateUserFeatureFlagFunction: FeatureFlagBackendProdLam-CreateUserFeatureFlagFun-Fi1GnCD4KsBu
-        GetFeatureFlagFunction: FeatureFlagBackendProdLambd-GetFeatureFlagFunction-I2kT1C4qt7i8
-        GetAllFeatureFlagFunction: FeatureFlagBackendProdLam-GetAllFeatureFlagFunctio-kqYPpHWHnPqR
-        UpdateFeatureFlagFunction: FeatureFlagBackendProdLam-UpdateFeatureFlagFunctio-9g8Vbr3cPzHL
-        UpdateUserFeatureFlagFunction: FeatureFlagBackendProdLam-UpdateUserFeatureFlagFun-FkeJ3SHwYIjo
-        GetUserFeatureFlagsFunction: FeatureFlagBackendProdLam-GetUserFeatureFlagsFunct-Qj4UvchESEwz
-        GetUserFeatureFlagFunction: FeatureFlagBackendProdLam-GetUserFeatureFlagFuncti-X4iHFCSiLo92
-        RateLimiterFunction: FeatureFlagBackendProdLambdas-RateLimiterFunction-WubbBb4Naxsm
+        CreateFeatureFlagFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR
+          - feature-flag-staging-CreateFeatureFlagFunction-jtNqeZdpSPyX
+        CreateUserFeatureFlagFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLam-CreateUserFeatureFlagFun-Fi1GnCD4KsBu
+          - feature-flag-staging-CreateUserFeatureFlagFunction-STwgvxNezRhr
+        GetFeatureFlagFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLambd-GetFeatureFlagFunction-I2kT1C4qt7i8
+          - feature-flag-staging-GetFeatureFlagFunction-0J7rpugeOdU5
+        GetAllFeatureFlagFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLam-GetAllFeatureFlagFunctio-kqYPpHWHnPqR
+          - feature-flag-staging-GetAllFeatureFlagFunction-ey71dNmZRDOp
+        UpdateFeatureFlagFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLam-UpdateFeatureFlagFunctio-9g8Vbr3cPzHL
+          - feature-flag-staging-UpdateFeatureFlagFunction-Kyi46ClC6I4R
+        UpdateUserFeatureFlagFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLam-UpdateUserFeatureFlagFun-FkeJ3SHwYIjo
+          - feature-flag-staging-UpdateUserFeatureFlagFunction-CmettJMSor9w
+        GetUserFeatureFlagsFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLam-GetUserFeatureFlagsFunct-Qj4UvchESEwz
+          - feature-flag-staging-GetUserFeatureFlagsFunction-ajPGREFbovxq
+        GetUserFeatureFlagFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLam-GetUserFeatureFlagFuncti-X4iHFCSiLo92
+          - feature-flag-staging-GetUserFeatureFlagFunction-8NRHy9k0q5M4
+        RateLimiterFunction: !If
+          - IsProd
+          - FeatureFlagBackendProdLambdas-RateLimiterFunction-WubbBb4Naxsm
+          - feature-flag-staging-RateLimiterFunction-7tOfBleMOdAA
+
+Conditions:
+  IsProd: !Equals [!Ref Environment, "PRODUCTION"]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: "PRODUCTION"
+    AllowedValues:
+      - "PRODUCTION"
+      - "DEVELOPMENT"
 
 Resources:
   HealthCheckFunction:
