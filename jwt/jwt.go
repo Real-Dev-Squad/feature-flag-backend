@@ -23,13 +23,6 @@ var (
 	once             sync.Once
 )
 
-const publicKeyString = `-----BEGIN PUBLIC KEY-----
-MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgHo6sGbw8qk+XU9sBVa4w2aEq01i
-oKDMFFQa9mPy0MRScTCsrfEjbypD4VqIjJcwXGmDWKVhMcJ8SMZuJumIJ10vU9ca
-WSh/aHhAxiOIqOEe54IyYTwjcn5avdZry3zl62RYQ7tDZCPAR/WvFCIkgRXwjXfC
-Xpm4LR6ynKDMvsDNAgMBAAE=
------END PUBLIC KEY-----`
-
 type JWTUtils struct {
 	publicKey *rsa.PublicKey
 }
@@ -57,6 +50,11 @@ func GetInstance() (*JWTUtils, error) {
 func (j *JWTUtils) initialize() error {
 	if j == nil {
 		return errors.New("internal server error")
+	}
+
+	publicKeyString := os.Getenv("JWT_PUBLIC_KEY")
+	if publicKeyString == "" {
+		return errors.New("public key is not set")
 	}
 
 	block, _ := pem.Decode([]byte(publicKeyString))
@@ -139,7 +137,6 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 
 		cookieName := os.Getenv("SESSION_COOKIE_NAME")
 		if cookieName == "" {
-			log.Printf("cokkie emtpy mehullll")
 			cookieName = utils.DEVELOPMENT_COOKIE_NAME
 
 		}
