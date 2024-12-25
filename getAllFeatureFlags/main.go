@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
+	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
+	"github.com/Real-Dev-Squad/feature-flag-backend/middleware"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -45,9 +47,28 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	db := database.CreateDynamoDB()
 
 	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
-	
-	featureFlagsResponse, err := getAllFeatureFlags(db)
 
+	corsResponse, err := middleware.CORSMiddleware()(request)
+	if err != nil {
+		log.Printf("CORS error: %v", err)
+		return corsResponse, err
+	}
+
+	if corsResponse.StatusCode != http.StatusOK {
+		return corsResponse, nil
+	}
+
+	response, _, err := jwt.JWTMiddleware()(request)
+	if err != nil {
+		log.Printf("JWT middleware error: %v", err)
+		return response, err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return response, nil
+	}
+
+	featureFlagsResponse, err := getAllFeatureFlags(db)
 	if err != nil {
 		return utils.ServerError(err)
 	}
@@ -62,11 +83,14 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return utils.ServerError(err)
 	}
 
+	origin := request.Headers["Origin"]
+	corsHeaders := middleware.GetCORSHeaders(origin)
+
 	return events.APIGatewayProxyResponse{
 		Body:       string(jsonResult),
 		StatusCode: http.StatusOK,
+		Headers:    corsHeaders,
 	}, nil
-
 }
 
 func main() {
