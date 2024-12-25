@@ -14,6 +14,9 @@ import (
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -52,9 +55,9 @@ func (j *JWTUtils) initialize() error {
 		return errors.New("internal server error")
 	}
 
-	publicKeyString := os.Getenv("JWT_PUBLIC_KEY")
-	if publicKeyString == "" {
-		return errors.New("public key is not set")
+	publicKeyString, err := getPublicKeyFromParameterStore("publickey")
+	if err != nil {
+		return err
 	}
 
 	block, _ := pem.Decode([]byte(publicKeyString))
@@ -74,6 +77,26 @@ func (j *JWTUtils) initialize() error {
 
 	j.publicKey = rsaPublicKey
 	return nil
+}
+
+func getPublicKeyFromParameterStore(parameterName string) (string, error) {
+	sess, err := session.NewSession()
+	if err != nil {
+		return "", err
+	}
+
+	svc := ssm.New(sess)
+	input := &ssm.GetParameterInput{
+		Name:           aws.String(parameterName),
+		WithDecryption: aws.Bool(true),
+	}
+
+	result, err := svc.GetParameter(input)
+	if err != nil {
+		return "", err
+	}
+
+	return *result.Parameter.Value, nil
 }
 
 func (j *JWTUtils) ValidateToken(tokenString string) (jwt.MapClaims, error) {
@@ -140,7 +163,6 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 			cookieName = utils.DEVELOPMENT_COOKIE_NAME
 
 		}
-		log.Printf("mehullllll %s", cookieName)
 		var jwtToken string
 		cookies := strings.Split(cookie, ";")
 		for _, c := range cookies {

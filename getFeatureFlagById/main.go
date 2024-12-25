@@ -64,11 +64,12 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return serverErrorResponse, nil
 	}
 
+	origin := request.Headers["Origin"]
+	corsHeaders := middleware.GetCORSHeaders(origin)
+
 	response = events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
+		Headers: corsHeaders,
 		Body: string(jsonResponse),
 	}
 	return response, nil
