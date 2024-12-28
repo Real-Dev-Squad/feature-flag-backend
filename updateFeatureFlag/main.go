@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
+	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
+	"github.com/Real-Dev-Squad/feature-flag-backend/middleware"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -91,11 +93,31 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	id, _ := request.PathParameters["flagId"]
 
+	corsResponse, err := middleware.CORSMiddleware()(request)
+	if err != nil {
+		log.Printf("CORS error: %v", err)
+		return corsResponse, err
+	}
+
+	if corsResponse.StatusCode != http.StatusOK {
+		return corsResponse, nil
+	}
+
+	jwtResponse, _, err := jwt.JWTMiddleware()(request)
+	if err != nil {
+		log.Printf("JWT middleware error: %v", err)
+		return jwtResponse, err
+	}
+
+	if jwtResponse.StatusCode != http.StatusOK {
+		return jwtResponse, nil
+	}
+
 	updateFeatureFlagRequest := utils.UpdateFeatureFlagRequest{}
 
 	//marshal to updateFeatureFlag
 	bytes := []byte(request.Body)
-	err := json.Unmarshal(bytes, &updateFeatureFlagRequest)
+	err = json.Unmarshal(bytes, &updateFeatureFlagRequest)
 	if err != nil {
 		log.Printf("Error in reading input \n %v", err)
 		return utils.ClientError(http.StatusBadRequest, "Error in reading input")
@@ -110,16 +132,26 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return response, nil
 	}
 
+	origin := request.Headers["Origin"]
+	corsHeaders := middleware.GetCORSHeaders(origin)
+
 	found := utils.ValidateFeatureFlagStatus(updateFeatureFlagRequest.Status)
 	if !found {
 		response := events.APIGatewayProxyResponse{
 			Body:       "Allowed values of Status are ENABLED, DISABLED",
 			StatusCode: http.StatusBadRequest,
+			Headers:    corsHeaders,
 		}
 		return response, nil
 	}
 
-	return updateFeatureFlag(id, updateFeatureFlagRequest)
+	response, err := updateFeatureFlag(id, updateFeatureFlagRequest)
+	if err != nil {
+		return response, err
+	}
+	response.Headers = corsHeaders
+
+	return response, nil
 }
 
 func main() {
