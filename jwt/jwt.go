@@ -160,9 +160,17 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 
 		cookieName := os.Getenv("SESSION_COOKIE_NAME")
 		if cookieName == "" {
-			cookieName = utils.DEVELOPMENT_COOKIE_NAME
-
+			env := os.Getenv("ENVIRONMENT")
+			switch env {
+			case utils.PROD:
+				cookieName = utils.SESSION_COOKIE_NAME_PROD
+			case utils.DEV:
+				cookieName = utils.SESSION_COOKIE_NAME_DEV
+			default: // For local or any other environment
+				cookieName = utils.SESSION_COOKIE_NAME_LOCAL
+			}
 		}
+
 		var jwtToken string
 		cookies := strings.Split(cookie, ";")
 		for _, c := range cookies {
@@ -193,7 +201,7 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 		if err != nil {
 			return events.APIGatewayProxyResponse{
 				StatusCode: http.StatusUnauthorized,
-				Body:       "Unauthorized",
+				Body:       "User ID claim could not be extracted, Unauthorized",
 			}, "", nil
 		}
 

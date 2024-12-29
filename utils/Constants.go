@@ -20,5 +20,7 @@ const (
 	UserId                               = "userId"
 	FlagId                               = "flagId"
 	ConcurrencyDisablingLambda           = 0
-	DEVELOPMENT_COOKIE_NAME              = "rds-session-development"
+	SESSION_COOKIE_NAME_PROD       = "rds-session"
+	SESSION_COOKIE_NAME_DEV        = "rds-session-staging"
+	SESSION_COOKIE_NAME_LOCAL      = "rds-session-development"
 )

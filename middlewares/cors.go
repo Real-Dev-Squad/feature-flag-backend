@@ -1,4 +1,4 @@
-package middleware
+package cors
 
 import (
 	"log"
@@ -43,12 +43,8 @@ func CORSMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGateway
 				Body:       "CORS policy: No origin header found.",
 			}, nil
 		}
-		rdsPattern := `^https?://([a-zA-Z0-9-]+\.)*realdevsquad\.com$`
-		isRDSDomain, err := regexp.MatchString(rdsPattern, origin)
 
-		if err != nil {
-			log.Printf("Error matching RDS domain: %v", err)
-		}
+		isRDSDomain := AllowedOrigins[0].MatchString(origin)
 
 		if isRDSDomain {
 			headers := generateCORSHeaders(origin)

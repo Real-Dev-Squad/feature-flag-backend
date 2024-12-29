@@ -7,7 +7,7 @@ import (
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
-	"github.com/Real-Dev-Squad/feature-flag-backend/middleware"
+	middleware "github.com/Real-Dev-Squad/feature-flag-backend/middlewares"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -24,7 +24,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return corsResponse, nil
 	}
 
-	response, userId, err := jwt.JWTMiddleware()(req)
+	response, _, err := jwt.JWTMiddleware()(req)
 	if err != nil {
 		log.Printf("JWT middleware error: %v", err)
 		return response, err
@@ -34,16 +34,14 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return response, nil
 	}
 
-	log.Printf("User ID: %s", userId)
-
-	id, ok := req.PathParameters["flagId"]
+	featureFlagId, ok := req.PathParameters["flagId"]
 	if !ok {
 		log.Println("flagId is required")
 		clientErrorResponse, _ := utils.ClientError(http.StatusBadRequest, "flagId is required")
 		return clientErrorResponse, nil
 	}
 
-	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.Id, id)
+	featureFlag, err := database.ProcessGetFeatureFlagByHashKey(utils.Id, featureFlagId)
 	if err != nil {
 		log.Printf("Database error: %v", err)
 		serverErrorResponse, _ := utils.ServerError(err)
