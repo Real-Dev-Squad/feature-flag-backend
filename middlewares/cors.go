@@ -33,6 +33,20 @@ func GetCORSHeaders(origin string) map[string]string {
 	return generateCORSHeaders("null")
 }
 
+func HandleCORS(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error, bool) {
+	corsResponse, err := CORSMiddleware()(req)
+	if err != nil {
+		log.Printf("CORS error: %v", err)
+		return corsResponse, err, false
+	}
+
+	if corsResponse.StatusCode != http.StatusOK {
+		return corsResponse, nil, false
+	}
+
+	return corsResponse, nil, true
+}
+
 func CORSMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Received Headers:", req.Headers)

@@ -139,23 +139,37 @@ func (j *JWTUtils) ExtractClaim(claims jwt.MapClaims, claimKey string) (string, 
 	return value, nil
 }
 
+func handleMiddlewareResponse(response events.APIGatewayProxyResponse, err error) (events.APIGatewayProxyResponse, string, error) {
+	if err != nil {
+		log.Printf("JWT middleware error: %v", err)
+		return response, "", err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return response, "", nil
+	}
+
+	return response, "", nil
+}
+
 func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, string, error) {
 	return func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, string, error) {
 		jwtUtils, err := GetInstance()
 		if err != nil {
-			log.Printf("Failed to get JWTUtils instance: %v", err)
-			return events.APIGatewayProxyResponse{
+			response := events.APIGatewayProxyResponse{
 				StatusCode: http.StatusInternalServerError,
 				Body:       "Internal server error",
-			}, "", nil
+			}
+			return handleMiddlewareResponse(response, err)
 		}
 
 		cookie := req.Headers["Cookie"]
 		if cookie == "" {
-			return events.APIGatewayProxyResponse{
+			response := events.APIGatewayProxyResponse{
 				StatusCode: http.StatusUnauthorized,
 				Body:       "Unauthenticated",
-			}, "", nil
+			}
+			return handleMiddlewareResponse(response, nil)
 		}
 
 		cookieName := os.Getenv("SESSION_COOKIE_NAME")
@@ -182,27 +196,29 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 		}
 
 		if jwtToken == "" {
-			return events.APIGatewayProxyResponse{
+			response := events.APIGatewayProxyResponse{
 				StatusCode: http.StatusUnauthorized,
 				Body:       "Unauthenticated",
-			}, "", nil
+			}
+			return handleMiddlewareResponse(response, nil)
 		}
 
 		claims, err := jwtUtils.ValidateToken(jwtToken)
 		if err != nil {
-			log.Printf("Token validation failed: %v", err)
-			return events.APIGatewayProxyResponse{
+			response := events.APIGatewayProxyResponse{
 				StatusCode: http.StatusUnauthorized,
 				Body:       "Invalid token",
-			}, "", nil
+			}
+			return handleMiddlewareResponse(response, err)
 		}
 
 		userId, err := jwtUtils.ExtractClaim(claims, "userId")
 		if err != nil {
-			return events.APIGatewayProxyResponse{
+			response := events.APIGatewayProxyResponse{
 				StatusCode: http.StatusUnauthorized,
 				Body:       "User ID claim could not be extracted, Unauthorized",
-			}, "", nil
+			}
+			return handleMiddlewareResponse(response, err)
 		}
 
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusOK}, userId, nil

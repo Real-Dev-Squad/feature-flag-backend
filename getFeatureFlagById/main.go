@@ -14,19 +14,14 @@ import (
 )
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	corsResponse, err := middleware.CORSMiddleware()(req)
-	if err != nil {
-		log.Printf("CORS error: %v", err)
+	corsResponse, err, passed := middleware.HandleCORS(req)
+
+	if !passed {
 		return corsResponse, err
 	}
 
-	if corsResponse.StatusCode != http.StatusOK {
-		return corsResponse, nil
-	}
-
 	response, _, err := jwt.JWTMiddleware()(req)
-	if err != nil {
-		log.Printf("JWT middleware error: %v", err)
+	if err != nil || response.StatusCode != http.StatusOK {
 		return response, err
 	}
 
