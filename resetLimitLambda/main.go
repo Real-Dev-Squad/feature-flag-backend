@@ -90,24 +90,14 @@ func init() {
 
 func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	corsResponse, err := middleware.CORSMiddleware()(event)
-	if err != nil {
-		log.Printf("CORS error: %v", err)
+	corsResponse, err, passed := middleware.HandleCORS(event)
+	if !passed {
 		return corsResponse, err
 	}
 
-	if corsResponse.StatusCode != http.StatusOK {
-		return corsResponse, nil
-	}
-
 	jwtResponse, _, err := jwt.JWTMiddleware()(event)
-	if err != nil {
-		log.Printf("JWT middleware error: %v", err)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
 		return jwtResponse, err
-	}
-
-	if jwtResponse.StatusCode != http.StatusOK {
-		return jwtResponse, nil
 	}
 
 	var concurrencyLimitRequest ConcurrencyLimitRequest

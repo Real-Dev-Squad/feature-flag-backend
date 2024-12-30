@@ -63,24 +63,14 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
 
-	corsResponse, err := middleware.CORSMiddleware()(req)
-	if err != nil {
-		log.Printf("CORS error: %v", err)
+	corsResponse, err, passed := middleware.HandleCORS(req)
+	if !passed {
 		return corsResponse, err
 	}
 
-	if corsResponse.StatusCode != http.StatusOK {
-		return corsResponse, nil
-	}
-
 	jwtResponse, _, err := jwt.JWTMiddleware()(req)
-	if err != nil {
-		log.Printf("JWT middleware error: %v", err)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
 		return jwtResponse, err
-	}
-
-	if jwtResponse.StatusCode != http.StatusOK {
-		return jwtResponse, nil
 	}
 
 	err = json.Unmarshal([]byte(req.Body), &createFeatureFlagRequest)

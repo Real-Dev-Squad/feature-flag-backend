@@ -93,24 +93,14 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	id, _ := request.PathParameters["flagId"]
 
-	corsResponse, err := middleware.CORSMiddleware()(request)
-	if err != nil {
-		log.Printf("CORS error: %v", err)
+	corsResponse, err, passed := middleware.HandleCORS(request)
+	if !passed {
 		return corsResponse, err
 	}
 
-	if corsResponse.StatusCode != http.StatusOK {
-		return corsResponse, nil
-	}
-
 	jwtResponse, _, err := jwt.JWTMiddleware()(request)
-	if err != nil {
-		log.Printf("JWT middleware error: %v", err)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
 		return jwtResponse, err
-	}
-
-	if jwtResponse.StatusCode != http.StatusOK {
-		return jwtResponse, nil
 	}
 
 	updateFeatureFlagRequest := utils.UpdateFeatureFlagRequest{}
