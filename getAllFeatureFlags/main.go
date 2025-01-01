@@ -58,10 +58,6 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return response, err
 	}
 
-	if response.StatusCode != http.StatusOK {
-		return response, nil
-	}
-
 	featureFlagsResponse, err := getAllFeatureFlags(db)
 	if err != nil {
 		return utils.ServerError(err)
