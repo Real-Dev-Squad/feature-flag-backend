@@ -9,6 +9,8 @@ import (
 	"sync"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
+	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
+	middleware "github.com/Real-Dev-Squad/feature-flag-backend/middlewares"
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
@@ -87,6 +89,17 @@ func init() {
 }
 
 func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	corsResponse, err, passed := middleware.HandleCORS(event)
+	if !passed {
+		return corsResponse, err
+	}
+
+	jwtResponse, _, err := jwt.JWTMiddleware()(event)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
+		return jwtResponse, err
+	}
+
 	var concurrencyLimitRequest ConcurrencyLimitRequest
 	if err := json.Unmarshal([]byte(event.Body), &concurrencyLimitRequest); err != nil {
 		return events.APIGatewayProxyResponse{
@@ -130,17 +143,22 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 	}
 	wg.Wait()
 
+	origin := event.Headers["Origin"]
+	corsHeaders := middleware.GetCORSHeaders(origin)
+
 	err = updateConcurrencyLimitInDB(concurrencyLimitRequest.PendingLimit)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			Body:       "Failed to update concurrency limit in database",
 			StatusCode: http.StatusInternalServerError,
+			Headers:    corsHeaders,
 		}, nil
 	}
 
 	return events.APIGatewayProxyResponse{
 		Body:       "Successfully updated concurrency limit",
 		StatusCode: http.StatusOK,
+		Headers:    corsHeaders,
 	}, nil
 }
 

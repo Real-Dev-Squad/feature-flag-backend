@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
+	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
+	middleware "github.com/Real-Dev-Squad/feature-flag-backend/middlewares"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -82,8 +84,18 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	userId := req.PathParameters["userId"]
 	flagId := req.PathParameters["flagId"]
 
+	corsResponse, err, passed := middleware.HandleCORS(req)
+	if !passed {
+		return corsResponse, err
+	}
+
+	jwtResponse, _, err := jwt.JWTMiddleware()(req)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
+		return jwtResponse, err
+	}
+
 	var requestBody utils.UpdateFeatureFlagUserMappingRequest
-	err := json.Unmarshal([]byte(req.Body), &requestBody)
+	err = json.Unmarshal([]byte(req.Body), &requestBody)
 	if err != nil {
 		log.Printf("Error unmarshal request body: \n %v", err)
 		return utils.ClientError(http.StatusUnprocessableEntity, "Error unmarshalling request body")
@@ -123,9 +135,13 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return utils.ServerError(err)
 	}
 
+	origin := req.Headers["Origin"]
+	corsHeaders := middleware.GetCORSHeaders(origin)
+
 	response := events.APIGatewayProxyResponse{
 		Body:       string(resultJson),
 		StatusCode: http.StatusOK,
+		Headers:    corsHeaders,
 	}
 
 	return response, nil
