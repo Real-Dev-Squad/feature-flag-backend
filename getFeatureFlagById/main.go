@@ -25,10 +25,6 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return response, err
 	}
 
-	if response.StatusCode != http.StatusOK {
-		return response, nil
-	}
-
 	featureFlagId, ok := req.PathParameters["flagId"]
 	if !ok {
 		log.Println("flagId is required")

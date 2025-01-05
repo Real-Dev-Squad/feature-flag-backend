@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
+	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
+	middleware "github.com/Real-Dev-Squad/feature-flag-backend/middlewares"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -45,9 +47,18 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	db := database.CreateDynamoDB()
 
 	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
-	
-	featureFlagsResponse, err := getAllFeatureFlags(db)
 
+	corsResponse, err, passed := middleware.HandleCORS(request)
+	if !passed {
+		return corsResponse, err
+	}
+
+	response, _, err := jwt.JWTMiddleware()(request)
+	if err != nil || response.StatusCode != http.StatusOK {
+		return response, err
+	}
+
+	featureFlagsResponse, err := getAllFeatureFlags(db)
 	if err != nil {
 		return utils.ServerError(err)
 	}
@@ -62,11 +73,14 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return utils.ServerError(err)
 	}
 
+	origin := request.Headers["Origin"]
+	corsHeaders := middleware.GetCORSHeaders(origin)
+
 	return events.APIGatewayProxyResponse{
 		Body:       string(jsonResult),
 		StatusCode: http.StatusOK,
+		Headers:    corsHeaders,
 	}, nil
-
 }
 
 func main() {
