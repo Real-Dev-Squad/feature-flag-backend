@@ -30,6 +30,18 @@ type JWTUtils struct {
 	publicKey *rsa.PublicKey
 }
 
+type EnvConfig struct {
+	SessionCookieName string
+	Environment       string
+}
+
+func LoadEnvConfig() (*EnvConfig, error) {
+	return &EnvConfig{
+		SessionCookieName: os.Getenv("SESSION_COOKIE_NAME"),
+		Environment:       os.Getenv("ENVIRONMENT"),
+	}, nil
+}
+
 func GetInstance() (*JWTUtils, error) {
 	once.Do(func() {
 		jwtUtilsInstance = &JWTUtils{}
@@ -172,15 +184,16 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 			return handleMiddlewareResponse(response, nil)
 		}
 
-		cookieName := os.Getenv("SESSION_COOKIE_NAME")
+		envConfig, _ := LoadEnvConfig()
+
+		cookieName := envConfig.SessionCookieName
 		if cookieName == "" {
-			env := os.Getenv("ENVIRONMENT")
-			switch env {
+			switch envConfig.Environment {
 			case utils.PROD:
 				cookieName = utils.SESSION_COOKIE_NAME_PROD
 			case utils.DEV:
 				cookieName = utils.SESSION_COOKIE_NAME_DEV
-			default: // For local or any other environment
+			default:
 				cookieName = utils.SESSION_COOKIE_NAME_LOCAL
 			}
 		}
