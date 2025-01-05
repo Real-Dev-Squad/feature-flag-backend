@@ -1,5 +1,5 @@
-github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20231002185428-1ab29298fc37 h1:xNdIzSF5QgGyF3jCf+a93zTJWeXEpl3q98OXca6CbuU=
-github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20231002185428-1ab29298fc37/go.mod h1:KIXxGKS5Hn3yFpu0nGfhYFrNF7yChl2yjGk8ZbRCso8=
+github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250105174329-d640dca1d9d2 h1:nqE0aZPsY4qkv5YfZ3g/nyNYn32Mrz45ypXDpbxb5no=
+github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250105174329-d640dca1d9d2/go.mod h1:5PjUN7WNRsmIsAFRipvthv2FR5EmDXPUKdpst0ejrDo=
 github.com/aws/aws-lambda-go v1.41.0 h1:l/5fyVb6Ud9uYd411xdHZzSf2n86TakxzpvIoz7l+3Y=
 github.com/aws/aws-lambda-go v1.41.0/go.mod h1:jwFe2KmMsHmffA1X2R09hH6lFzJQxzI8qK17ewzbQMM=
 github.com/aws/aws-sdk-go v1.44.323 h1:97/dn93DWrN1VfhAWQ2tV+xuE6oO/LO9rSsEsuC4PLU=
