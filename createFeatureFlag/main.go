@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
+	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
+	middleware "github.com/Real-Dev-Squad/feature-flag-backend/middlewares"
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
@@ -23,7 +25,7 @@ func init() {
 	validate = validator.New()
 }
 
-func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.CreateFeatureFlagRequest) error {
+func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.CreateFeatureFlagRequest) (models.FeatureFlag, error) {
 	featureFlag := models.FeatureFlag{
 		Id:          uuid.New().String(),
 		Name:        createFeatureFlagRequest.FlagName,
@@ -38,7 +40,7 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 	item, err := database.MarshalMap(featureFlag)
 	if err != nil {
 		log.Printf("Error marshalling object to DynamoDB AttributeValue: \n %v", err)
-		return err
+		return models.FeatureFlag{}, err
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -49,9 +51,9 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 	_, err = db.PutItem(input)
 	if err != nil {
 		log.Printf("Error putting item to Dynamodb: \n %v", err)
-		return err
+		return models.FeatureFlag{}, err
 	}
-	return nil
+	return featureFlag, nil
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -60,8 +62,18 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	db := database.CreateDynamoDB()
 
 	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
-	
-	err := json.Unmarshal([]byte(req.Body), &createFeatureFlagRequest)
+
+	corsResponse, err, passed := middleware.HandleCORS(req)
+	if !passed {
+		return corsResponse, err
+	}
+
+	jwtResponse, _, err := jwt.JWTMiddleware()(req)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
+		return jwtResponse, err
+	}
+
+	err = json.Unmarshal([]byte(req.Body), &createFeatureFlagRequest)
 	if err != nil {
 		log.Printf("Error unmarshal request body: \n %v", err)
 		return utils.ClientError(http.StatusUnprocessableEntity, "Error unmarshalling request body")
@@ -74,19 +86,32 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		}, nil
 	}
 
-	err = createFeatureFlag(db, createFeatureFlagRequest)
+	featureFlag, err := createFeatureFlag(db, createFeatureFlagRequest)
 	if err != nil {
 		log.Printf("Error while creating feature flag: \n %v ", err)
 		return utils.ServerError(err)
 	}
 
+	origin := req.Headers["Origin"]
+	corsHeaders := middleware.GetCORSHeaders(origin)
+
 	response := events.APIGatewayProxyResponse{
 		StatusCode: http.StatusCreated,
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-		Body: "Created feature flag successfully",
+		Headers:    corsHeaders,
 	}
+
+	responseBody, err := json.Marshal(map[string]interface{}{
+		"message": "Created feature flag successfully",
+		"data":    featureFlag,
+	})
+
+	if err != nil {
+		log.Printf("Error marshalling response body: %v", err)
+		return utils.ServerError(err)
+	}
+
+	response.Body = string(responseBody)
+
 	return response, nil
 }
 

@@ -5,6 +5,10 @@ Globals:
     Environment:
       Variables:
         ENVIRONMENT: PRODUCTION
+        SESSION_COOKIE_NAME: !If
+          - IsProd
+          - "rds-session"
+          - "rds-session-staging"
         CreateFeatureFlagFunction: !If
           - IsProd
           - FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR
