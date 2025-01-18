@@ -33,12 +33,14 @@ type JWTUtils struct {
 type EnvConfig struct {
 	SessionCookieName string
 	Environment       string
+	PublicKeyName     string
 }
 
 func LoadEnvConfig() (*EnvConfig, error) {
 	return &EnvConfig{
 		SessionCookieName: os.Getenv("SESSION_COOKIE_NAME"),
 		Environment:       os.Getenv("ENVIRONMENT"),
+		PublicKeyName:     os.Getenv("RDS_BACKEND_PUBLIC_KEY_NAME"),
 	}, nil
 }
 
@@ -65,6 +67,20 @@ func GetInstance() (*JWTUtils, error) {
 func (j *JWTUtils) initialize() error {
 	if j == nil {
 		return errors.New("internal server error")
+	}
+
+	envConfig, _ := LoadEnvConfig()
+
+	parameterName := envConfig.PublicKeyName
+	if parameterName == "" {
+		switch envConfig.Environment {
+		case utils.PROD:
+			parameterName = utils.RDS_BACKEND_PUBLIC_KEY_NAME_PROD
+		case utils.DEV:
+			parameterName = utils.RDS_BACKEND_PUBLIC_KEY_NAME_DEV
+		default:
+			parameterName = utils.RDS_BACKEND_PUBLIC_KEY_NAME_LOCAL
+		}
 	}
 
 	publicKeyString, err := getPublicKeyFromParameterStore("publickey")
@@ -151,37 +167,24 @@ func (j *JWTUtils) ExtractClaim(claims jwt.MapClaims, claimKey string) (string, 
 	return value, nil
 }
 
-func handleMiddlewareResponse(response events.APIGatewayProxyResponse, err error) (events.APIGatewayProxyResponse, string, error) {
-	if err != nil {
-		log.Printf("JWT middleware error: %v", err)
-		return response, "", err
-	}
-
-	if response.StatusCode != http.StatusOK {
-		return response, "", nil
-	}
-
-	return response, "", nil
+func handleMiddlewareResponse(statusCode int, message string) (events.APIGatewayProxyResponse, string, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: statusCode,
+		Body:       message,
+	}, "", nil
 }
 
 func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, string, error) {
 	return func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, string, error) {
 		jwtUtils, err := GetInstance()
 		if err != nil {
-			response := events.APIGatewayProxyResponse{
-				StatusCode: http.StatusInternalServerError,
-				Body:       "Internal server error",
-			}
-			return handleMiddlewareResponse(response, err)
+			log.Printf("Failed to get JWTUtils instance: %v", err)
+			return handleMiddlewareResponse(http.StatusInternalServerError, "Internal server error")
 		}
 
 		cookie := req.Headers["Cookie"]
 		if cookie == "" {
-			response := events.APIGatewayProxyResponse{
-				StatusCode: http.StatusUnauthorized,
-				Body:       "Unauthenticated",
-			}
-			return handleMiddlewareResponse(response, nil)
+			return handleMiddlewareResponse(http.StatusUnauthorized, "Unauthenticated")
 		}
 
 		envConfig, _ := LoadEnvConfig()
@@ -209,31 +212,20 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 		}
 
 		if jwtToken == "" {
-			response := events.APIGatewayProxyResponse{
-				StatusCode: http.StatusUnauthorized,
-				Body:       "Unauthenticated",
-			}
-			return handleMiddlewareResponse(response, nil)
+			return handleMiddlewareResponse(http.StatusUnauthorized, "Unauthenticated")
 		}
 
 		claims, err := jwtUtils.ValidateToken(jwtToken)
 		if err != nil {
-			response := events.APIGatewayProxyResponse{
-				StatusCode: http.StatusUnauthorized,
-				Body:       "Invalid token",
-			}
-			return handleMiddlewareResponse(response, err)
+			log.Printf("Token validation failed: %v", err)
+			return handleMiddlewareResponse(http.StatusUnauthorized, "Invalid token")
 		}
 
 		userId, err := jwtUtils.ExtractClaim(claims, "userId")
 		if err != nil {
-			response := events.APIGatewayProxyResponse{
-				StatusCode: http.StatusUnauthorized,
-				Body:       "User ID claim could not be extracted, Unauthorized",
-			}
-			return handleMiddlewareResponse(response, err)
+			return handleMiddlewareResponse(http.StatusUnauthorized, "Unauthorized")
 		}
 
-		return events.APIGatewayProxyResponse{StatusCode: http.StatusOK}, userId, nil
+		return handleMiddlewareResponse(http.StatusOK, userId)
 	}
 }

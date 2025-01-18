@@ -5,6 +5,10 @@ Globals:
     Environment:
       Variables:
         ENVIRONMENT: PRODUCTION
+        RDS_BACKEND_PUBLIC_KEY_NAME: !If
+          - IsProd
+          - "rdsbackendpublickeyprod"
+          - "rdsbackendpublickeystaging"
         SESSION_COOKIE_NAME: !If
           - IsProd
           - "rds-session"
