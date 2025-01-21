@@ -83,7 +83,7 @@ func (j *JWTUtils) initialize() error {
 		}
 	}
 
-	publicKeyString, err := getPublicKeyFromParameterStore("publickey")
+	publicKeyString, err := getPublicKeyFromParameterStore(parameterName)
 	if err != nil {
 		return err
 	}
