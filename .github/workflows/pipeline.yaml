@@ -111,3 +111,4 @@ jobs:
             --no-fail-on-empty-changeset \
             --parameter-overrides Environment=${ENVIRONMENT} \
             --role-arn ${CLOUDFORMATION_EXECUTION_ROLE}
+            --force-upload
