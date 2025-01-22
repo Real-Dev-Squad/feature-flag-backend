@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
+	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
+	middleware "github.com/Real-Dev-Squad/feature-flag-backend/middlewares"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -52,6 +54,17 @@ func processGetById(userId string) ([]utils.FeatureFlagUserMappingResponse, erro
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	corsResponse, err, passed := middleware.HandleCORS(req)
+	if !passed {
+		return corsResponse, err
+	}
+
+	response, _, err := jwt.JWTMiddleware()(req)
+	if err != nil || response.StatusCode != http.StatusOK {
+		return response, err
+	}
+
 	userId := req.PathParameters["userId"]
 	result, err := processGetById(userId)
 	if err != nil {
@@ -67,9 +80,13 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return utils.ServerError(err)
 	}
 
+	origin := req.Headers["Origin"]
+	corsHeaders := middleware.GetCORSHeaders(origin)
+
 	return events.APIGatewayProxyResponse{
 		Body:       string(resultJson),
 		StatusCode: http.StatusOK,
+		Headers:    corsHeaders,
 	}, nil
 
 }

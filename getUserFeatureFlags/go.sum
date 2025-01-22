@@ -1,7 +1,7 @@
-github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20231002185428-1ab29298fc37 h1:xNdIzSF5QgGyF3jCf+a93zTJWeXEpl3q98OXca6CbuU=
-github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20231002185428-1ab29298fc37/go.mod h1:KIXxGKS5Hn3yFpu0nGfhYFrNF7yChl2yjGk8ZbRCso8=
-github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20240829163650-2f4fa0b0129c h1:KoOWwnVlR63D5qTJYJtzuOjUZ1wTVc76llysEZbNKds=
-github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20240829163650-2f4fa0b0129c/go.mod h1:KIXxGKS5Hn3yFpu0nGfhYFrNF7yChl2yjGk8ZbRCso8=
+github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250105174329-d640dca1d9d2 h1:nqE0aZPsY4qkv5YfZ3g/nyNYn32Mrz45ypXDpbxb5no=
+github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250105174329-d640dca1d9d2/go.mod h1:5PjUN7WNRsmIsAFRipvthv2FR5EmDXPUKdpst0ejrDo=
+github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250121125844-dc297346c8ce h1:yvIuR8iGTJGyckU7DZv5LklDxGHYkib/joUAjRilozI=
+github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250121125844-dc297346c8ce/go.mod h1:5PjUN7WNRsmIsAFRipvthv2FR5EmDXPUKdpst0ejrDo=
 github.com/aws/aws-lambda-go v1.41.0 h1:l/5fyVb6Ud9uYd411xdHZzSf2n86TakxzpvIoz7l+3Y=
 github.com/aws/aws-lambda-go v1.41.0/go.mod h1:jwFe2KmMsHmffA1X2R09hH6lFzJQxzI8qK17ewzbQMM=
 github.com/aws/aws-sdk-go v1.44.284 h1:Oc5Kubi43/VCkerlt3ZU3KpBju6BpNkoG3s7E8vj/O8=
@@ -9,6 +9,8 @@ github.com/aws/aws-sdk-go v1.44.284/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
+github.com/golang-jwt/jwt/v5 v5.2.1/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=

@@ -5,6 +5,14 @@ Globals:
     Environment:
       Variables:
         ENVIRONMENT: PRODUCTION
+        RDS_BACKEND_PUBLIC_KEY_NAME: !If
+          - IsProd
+          - "PROD_RDS_BACKEND_PUBLIC_KEY"
+          - "STAGING_RDS_BACKEND_PUBLIC_KEY"
+        SESSION_COOKIE_NAME: !If
+          - IsProd
+          - "rds-session"
+          - "rds-session-staging"
         CreateFeatureFlagFunction: !If
           - IsProd
           - FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR

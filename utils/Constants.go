@@ -20,4 +20,10 @@ const (
 	UserId                               = "userId"
 	FlagId                               = "flagId"
 	ConcurrencyDisablingLambda           = 0
+	SESSION_COOKIE_NAME_PROD             = "rds-session"
+	SESSION_COOKIE_NAME_DEV              = "rds-session-staging"
+	SESSION_COOKIE_NAME_LOCAL            = "rds-session-development"
+	RDS_BACKEND_PUBLIC_KEY_NAME_DEV      = "STAGING_RDS_BACKEND_PUBLIC_KEY"
+	RDS_BACKEND_PUBLIC_KEY_NAME_PROD     = "PROD_RDS_BACKEND_PUBLIC_KEY"
+	RDS_BACKEND_PUBLIC_KEY_NAME_LOCAL    = "publickey"
 )
