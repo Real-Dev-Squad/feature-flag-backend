@@ -122,8 +122,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return response, nil
 	}
 
-	origin := request.Headers["Origin"]
-	corsHeaders := middleware.GetCORSHeaders(origin)
+	corsHeaders := middleware.GetCORSHeaders(request.Headers)
 
 	found := utils.ValidateFeatureFlagStatus(updateFeatureFlagRequest.Status)
 	if !found {

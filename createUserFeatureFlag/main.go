@@ -115,8 +115,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return utils.ServerError(err)
 	}
 
-	origin := req.Headers["Origin"]
-	corsHeaders := middleware.GetCORSHeaders(origin)
+	corsHeaders := middleware.GetCORSHeaders(req.Headers)
 
 	response := events.APIGatewayProxyResponse{
 		Body:       string(resultJson),

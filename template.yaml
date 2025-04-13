@@ -129,6 +129,11 @@ Resources:
           Properties:
             Path: /feature-flags/{flagId}
             Method: GET
+        Preflight:
+          Type: Api
+          Properties:
+            Path: /feature-flags/{flagId}
+            Method: OPTIONS
 
   CreateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
@@ -180,6 +185,11 @@ Resources:
           Properties:
             Path: /feature-flags/
             Method: GET
+        Preflight:
+          Type: Api
+          Properties:
+            Path: /feature-flags/
+            Method: OPTIONS
 
   GetUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
@@ -197,6 +207,12 @@ Resources:
           Properties:
             Path: /users/{userId}/feature-flags/{flagId}
             Method: GET
+        Preflight:
+          Type: Api
+          Properties:
+            Path: /users/{userId}/feature-flags/{flagId}
+            Method: OPTIONS
+
 
   GetUserFeatureFlagsFunction:
     Type: 'AWS::Serverless::Function'
@@ -214,6 +230,11 @@ Resources:
           Properties:
             Path: /users/{userId}/feature-flags
             Method: GET
+        Preflight:
+          Type: Api
+          Properties:
+            Path: /users/{userId}/feature-flags
+            Method: OPTIONS
 
   CreateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
