@@ -32,7 +32,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
-			"Id": {
+			"id": {
 				S: aws.String(flagId),
 			},
 		},
@@ -55,7 +55,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 			"#updatedBy": aws.String("updatedBy"),
 		},
 		ReturnValues:        aws.String("ALL_NEW"),
-		ConditionExpression: aws.String("attribute_exists(Id)"),
+		ConditionExpression: aws.String("attribute_exists(id)"),
 	}
 
 	result, err := db.UpdateItem(input)

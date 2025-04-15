@@ -62,6 +62,23 @@ Parameters:
       - "DEVELOPMENT"
 
 Resources:
+  CorsLambda:
+    Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: corsLambda/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Events:
+        Preflight:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: OPTIONS
+
   HealthCheckFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
@@ -129,11 +146,6 @@ Resources:
           Properties:
             Path: /feature-flags/{flagId}
             Method: GET
-        Preflight:
-          Type: Api
-          Properties:
-            Path: /feature-flags/{flagId}
-            Method: OPTIONS
 
   CreateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
@@ -185,11 +197,6 @@ Resources:
           Properties:
             Path: /feature-flags/
             Method: GET
-        Preflight:
-          Type: Api
-          Properties:
-            Path: /feature-flags/
-            Method: OPTIONS
 
   GetUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
@@ -207,12 +214,6 @@ Resources:
           Properties:
             Path: /users/{userId}/feature-flags/{flagId}
             Method: GET
-        Preflight:
-          Type: Api
-          Properties:
-            Path: /users/{userId}/feature-flags/{flagId}
-            Method: OPTIONS
-
 
   GetUserFeatureFlagsFunction:
     Type: 'AWS::Serverless::Function'
@@ -229,12 +230,7 @@ Resources:
           Type: Api
           Properties:
             Path: /users/{userId}/feature-flags
-            Method: GET
-        Preflight:
-          Type: Api
-          Properties:
-            Path: /users/{userId}/feature-flags
-            Method: OPTIONS
+            Method: GET   
 
   CreateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
