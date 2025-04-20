@@ -11,17 +11,19 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+var checkRequestAllowed = utils.CheckRequestAllowed
+var jwtHandler = jwt.JWTMiddleware
+
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
-	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	checkRequestAllowed(db, utils.ConcurrencyDisablingLambda)
 	corsResponse, err, passed := middleware.HandleCORS(req)
 	if !passed {
 		return corsResponse, err
 	}
 	
-	jwtHandler := jwt.JWTMiddleware()
-	response, _, err := jwtHandler(req)
+	response, _, err := jwtHandler()(req)
 	if err != nil || response.StatusCode != http.StatusOK {
 		return response, err
 	}
