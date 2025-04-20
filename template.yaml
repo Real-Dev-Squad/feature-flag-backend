@@ -17,6 +17,10 @@ Globals:
           - IsProd
           - FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR
           - feature-flag-staging-CreateFeatureFlagFunction-jtNqeZdpSPyX
+        CorsLambda: !If
+          - IsProd
+          - feature-flag-CorsLambda-RCF0NXQL60ca
+          - feature-flag-staging-CreateFeatureFlagFunction-jtNqeZdpSPyX
         CreateUserFeatureFlagFunction: !If
           - IsProd
           - FeatureFlagBackendProdLam-CreateUserFeatureFlagFun-Fi1GnCD4KsBu

@@ -23,7 +23,17 @@ func generateCORSHeaders(origin string) map[string]string {
 	}
 }
 
-func GetCORSHeaders(headers map[string]string) map[string]string {
+func GetCORSHeaders(origin string) map[string]string {
+	for _, pattern := range AllowedOrigins {
+		if pattern.MatchString(origin) {
+			return generateCORSHeaders(origin)
+		}
+	}
+
+	return generateCORSHeaders("null")
+}
+
+func GetCORSHeadersV1(headers map[string]string) map[string]string {
 	var origin string
 	if val, exists := headers["Origin"]; exists {
 		origin = val

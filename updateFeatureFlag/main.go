@@ -32,7 +32,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
-			"id": {
+			"Id": {
 				S: aws.String(flagId),
 			},
 		},
@@ -55,7 +55,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 			"#updatedBy": aws.String("updatedBy"),
 		},
 		ReturnValues:        aws.String("ALL_NEW"),
-		ConditionExpression: aws.String("attribute_exists(id)"),
+		ConditionExpression: aws.String("attribute_exists(Id)"),
 	}
 
 	result, err := db.UpdateItem(input)
@@ -122,7 +122,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return response, nil
 	}
 
-	corsHeaders := middleware.GetCORSHeaders(request.Headers)
+	corsHeaders := middleware.GetCORSHeadersV1(request.Headers)
 
 	found := utils.ValidateFeatureFlagStatus(updateFeatureFlagRequest.Status)
 	if !found {
