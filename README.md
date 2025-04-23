@@ -5,6 +5,7 @@ The Feature Flag Backend service helps manage feature flags for your application
 ## Table of Contents
 
 -   [Installation](#installation)
+-   [API contract & documentation](#apicontract)
 -   [Run](#run)
 -   [Usage](#usage)
 -   [Features](#features)
@@ -12,13 +13,15 @@ The Feature Flag Backend service helps manage feature flags for your application
 -   [Data Model](#data-model)
 -   [Contributing](#contributing)
 
+## API contract and documentation
+Link for the documentation - https://github.com/Real-Dev-Squad/feature-flag-backend/issues/152
+
 ## Installation
 You should have some things pre-installed :
 - [VS Code](https://code.visualstudio.com/) or any other IDE
 - [Git](https://git-scm.com/)
 - [Golang](https://go.dev/)(version 1.20 or later)
 - [Docker](https://www.docker.com/)
-
 
 1. **Clone the repository**
 
