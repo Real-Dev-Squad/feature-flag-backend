@@ -64,6 +64,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return response, err
 	}
 
+	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
+
 	userId := req.PathParameters["userId"]
 
 	flagId := req.PathParameters["flagId"]
@@ -85,8 +87,6 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		log.Println("Error converting featureFlagUserMapping to JSON")
 		return utils.ServerError(err)
 	}
-
-	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
 
 	return events.APIGatewayProxyResponse{
 		Body:       string(resultJson),

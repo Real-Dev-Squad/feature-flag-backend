@@ -105,6 +105,8 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		return jwtResponse, err
 	}
 
+	corsHeaders := middleware.GetCORSHeadersV1(event.Headers)
+
 	var concurrencyLimitRequest ConcurrencyLimitRequest
 	if err := json.Unmarshal([]byte(event.Body), &concurrencyLimitRequest); err != nil {
 		return events.APIGatewayProxyResponse{
@@ -148,9 +150,6 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		}(functionName)
 	}
 	wg.Wait()
-
-	origin := event.Headers["Origin"]
-	corsHeaders := middleware.GetCORSHeaders(origin)
 
 	err = updateConcurrencyLimitInDB(concurrencyLimitRequest.PendingLimit)
 	if err != nil {

@@ -66,6 +66,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return jwtResponse, err
 	}
 
+	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
+
 	var requestBody utils.CreateFeatureFlagUserMappingRequest
 	err = json.Unmarshal([]byte(req.Body), &requestBody)
 	if err != nil {
@@ -114,8 +116,6 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		log.Println("Error converting featureFlagUserMapping to JSON")
 		return utils.ServerError(err)
 	}
-
-	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
 
 	response := events.APIGatewayProxyResponse{
 		Body:       string(resultJson),

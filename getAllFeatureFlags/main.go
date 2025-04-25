@@ -57,6 +57,8 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	if err != nil || response.StatusCode != http.StatusOK {
 		return response, err
 	}
+	
+	corsHeaders := middleware.GetCORSHeadersV1(request.Headers)
 
 	featureFlagsResponse, err := getAllFeatureFlags(db)
 	if err != nil {
@@ -72,8 +74,6 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		log.Println("Error converting feature flags to JSON")
 		return utils.ServerError(err)
 	}
-
-	corsHeaders := middleware.GetCORSHeadersV1(request.Headers)
 
 	return events.APIGatewayProxyResponse{
 		Body:       string(jsonResult),

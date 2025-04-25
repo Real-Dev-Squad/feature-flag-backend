@@ -73,6 +73,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return jwtResponse, err
 	}
 
+	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
+
 	err = json.Unmarshal([]byte(req.Body), &createFeatureFlagRequest)
 	if err != nil {
 		log.Printf("Error unmarshal request body: \n %v", err)
@@ -91,8 +93,6 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		log.Printf("Error while creating feature flag: \n %v ", err)
 		return utils.ServerError(err)
 	}
-
-	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
 
 	response := events.APIGatewayProxyResponse{
 		StatusCode: http.StatusCreated,

@@ -102,6 +102,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	if err != nil || jwtResponse.StatusCode != http.StatusOK {
 		return jwtResponse, err
 	}
+	corsHeaders := middleware.GetCORSHeadersV1(request.Headers)
 
 	updateFeatureFlagRequest := utils.UpdateFeatureFlagRequest{}
 
@@ -121,8 +122,6 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}
 		return response, nil
 	}
-
-	corsHeaders := middleware.GetCORSHeadersV1(request.Headers)
 
 	found := utils.ValidateFeatureFlagStatus(updateFeatureFlagRequest.Status)
 	if !found {
