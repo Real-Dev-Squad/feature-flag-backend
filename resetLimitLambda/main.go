@@ -41,7 +41,7 @@ var getAllFeatureFlagsFunctionName string
 var getUserFeatureFlagsFunctionName string
 var updateFeatureFlagFunctionName string
 var getFeatureFlagFunctionName string
-var getUserFeatureFlagFunction string
+var corsFunctionName string
 var requestLimitTableName = "requestLimit"
 
 func init() {
@@ -55,6 +55,11 @@ func init() {
 	createFeatureFlagFunctionName, found = os.LookupEnv("CreateFeatureFlagFunction")
 	if !found {
 		log.Println("Create feature flag function name not being set")
+	}
+
+	corsFunctionName, found = os.LookupEnv("CorsLambda")
+	if !found {
+		log.Println("CORS function name not being set")
 	}
 
 	getUserFeatureFlagFunctionName, found = os.LookupEnv("GetUserFeatureFlagFunction")
@@ -100,6 +105,8 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		return jwtResponse, err
 	}
 
+	corsHeaders := middleware.GetCORSHeadersV1(event.Headers)
+
 	var concurrencyLimitRequest ConcurrencyLimitRequest
 	if err := json.Unmarshal([]byte(event.Body), &concurrencyLimitRequest); err != nil {
 		return events.APIGatewayProxyResponse{
@@ -122,6 +129,7 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 			getAllFeatureFlagsFunctionName,
 			updateFeatureFlagFunctionName,
 			getUserFeatureFlagsFunctionName,
+			corsFunctionName,
 		},
 	}
 
@@ -142,9 +150,6 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		}(functionName)
 	}
 	wg.Wait()
-
-	origin := event.Headers["Origin"]
-	corsHeaders := middleware.GetCORSHeaders(origin)
 
 	err = updateConcurrencyLimitInDB(concurrencyLimitRequest.PendingLimit)
 	if err != nil {

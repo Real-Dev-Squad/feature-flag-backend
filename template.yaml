@@ -17,6 +17,10 @@ Globals:
           - IsProd
           - FeatureFlagBackendProdLam-CreateFeatureFlagFunctio-YOVQpOQ9W4hR
           - feature-flag-staging-CreateFeatureFlagFunction-jtNqeZdpSPyX
+        CorsLambda: !If
+          - IsProd
+          - feature-flag-CorsLambda-RCF0NXQL60ca
+          - feature-flag-staging-CreateFeatureFlagFunction-jtNqeZdpSPyX
         CreateUserFeatureFlagFunction: !If
           - IsProd
           - FeatureFlagBackendProdLam-CreateUserFeatureFlagFun-Fi1GnCD4KsBu
@@ -62,6 +66,23 @@ Parameters:
       - "DEVELOPMENT"
 
 Resources:
+  CorsLambda:
+    Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: corsLambda/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Events:
+        Preflight:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: OPTIONS
+
   HealthCheckFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
@@ -213,7 +234,7 @@ Resources:
           Type: Api
           Properties:
             Path: /users/{userId}/feature-flags
-            Method: GET
+            Method: GET   
 
   CreateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'

@@ -25,6 +25,8 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return response, err
 	}
 
+	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
+
 	featureFlagId, ok := req.PathParameters["flagId"]
 	if !ok {
 		log.Println("flagId is required")
@@ -52,9 +54,6 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		serverErrorResponse, _ := utils.ServerError(err)
 		return serverErrorResponse, nil
 	}
-
-	origin := req.Headers["Origin"]
-	corsHeaders := middleware.GetCORSHeaders(origin)
 
 	response = events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
