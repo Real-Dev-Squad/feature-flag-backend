@@ -15,7 +15,7 @@ var AllowedOrigins = []*regexp.Regexp{
 func generateCORSHeaders(origin string) map[string]string {
 	return map[string]string{
 		"Access-Control-Allow-Origin":      origin,
-		"Access-Control-Allow-Methods":     "GET, POST, OPTIONS",
+		"Access-Control-Allow-Methods":     "GET, POST, OPTIONS, PATCH",
 		"Access-Control-Allow-Headers":     "Authorization, Content-Type, Cache-Control, Cookie",
 		"Access-Control-Allow-Credentials": "true",
 		"Access-Control-Expose-Headers":    "Set-Cookie",
@@ -24,6 +24,23 @@ func generateCORSHeaders(origin string) map[string]string {
 }
 
 func GetCORSHeaders(origin string) map[string]string {
+	for _, pattern := range AllowedOrigins {
+		if pattern.MatchString(origin) {
+			return generateCORSHeaders(origin)
+		}
+	}
+
+	return generateCORSHeaders("null")
+}
+
+func GetCORSHeadersV1(headers map[string]string) map[string]string {
+	var origin string
+	if val, exists := headers["Origin"]; exists {
+		origin = val
+	} else if val, exists := headers["origin"]; exists {
+		origin = val
+	}
+
 	for _, pattern := range AllowedOrigins {
 		if pattern.MatchString(origin) {
 			return generateCORSHeaders(origin)
@@ -50,8 +67,13 @@ func HandleCORS(req events.APIGatewayProxyRequest) (events.APIGatewayProxyRespon
 func CORSMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Received Headers:", req.Headers)
-		origin, exists := req.Headers["Origin"]
-		if !exists {
+
+		var origin string
+		if val, exists := req.Headers["Origin"]; exists {
+			origin = val
+		} else if val, exists := req.Headers["origin"]; exists {
+			origin = val
+		} else {
 			return events.APIGatewayProxyResponse{
 				StatusCode: http.StatusForbidden,
 				Body:       "CORS policy: No origin header found.",

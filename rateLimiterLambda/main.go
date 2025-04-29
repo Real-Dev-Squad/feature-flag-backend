@@ -31,7 +31,7 @@ var getAllFeatureFlagsFunctionName string
 var getUserFeatureFlagsFunctionName string
 var updateFeatureFlagFunctionName string
 var getFeatureFlagFunctionName string
-var getUserFeatureFlagFunction string
+var corsFunctionName string
 
 func init() {
 	env, found := os.LookupEnv(utils.ENV)
@@ -40,6 +40,11 @@ func init() {
 		os.Setenv(utils.ENV, utils.PROD)
 	}
 	log.Printf("The env is %v", env)
+
+	corsFunctionName, found = os.LookupEnv("CorsLambda")
+	if !found {
+		log.Println("CORS function name not being set")
+	}
 
 	createFeatureFlagFunctionName, found = os.LookupEnv("CreateFeatureFlagFunction")
 	if !found {
@@ -94,7 +99,9 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 	}
 
 	var request = Request{
-		FunctionNames: []string{createFeatureFlagFunctionName,
+		FunctionNames: []string{
+			corsFunctionName,
+			createFeatureFlagFunctionName,
 			createUserFeatureFlagFunctionName,
 			getFeatureFlagFunctionName,
 			getUserFeatureFlagFunctionName,
