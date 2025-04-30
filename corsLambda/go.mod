@@ -3,7 +3,7 @@ module corsLambda
 go 1.24.0
 
 require (
-	github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250121203708-a49b2080c46c
+	github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250429021215-c7aa74a9164c
 	github.com/aws/aws-lambda-go v1.48.0
 )
 
