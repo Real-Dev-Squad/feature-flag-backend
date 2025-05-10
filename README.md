@@ -5,6 +5,7 @@ The Feature Flag Backend service helps manage feature flags for your application
 ## Table of Contents
 
 -   [Installation](#installation)
+-   [API contract & documentation](#apicontract)
 -   [Run](#run)
 -   [Usage](#usage)
 -   [Features](#features)
@@ -12,13 +13,15 @@ The Feature Flag Backend service helps manage feature flags for your application
 -   [Data Model](#data-model)
 -   [Contributing](#contributing)
 
+## API contract and documentation
+Link for the documentation - https://github.com/Real-Dev-Squad/feature-flag-backend/issues/152
+
 ## Installation
 You should have some things pre-installed :
 - [VS Code](https://code.visualstudio.com/) or any other IDE
 - [Git](https://git-scm.com/)
 - [Golang](https://go.dev/)(version 1.20 or later)
 - [Docker](https://www.docker.com/)
-
 
 1. **Clone the repository**
 
@@ -156,6 +159,10 @@ The API endpoints available in the Feature Flag Backend project are as follows:
 -   GET `/users/{userId}/feature-flags/` to get all feature flag details for a user
 -   POST `/users/{userId}/feature-flags/{flagId}` to create a feature flag for a user
 -   PATCH `/users/{userId}/feature-flags/{flagId}` to update a feature flag for a user
+-   OPTIONS `/` to serve all the preflight requests made by the browser
+-   GET `/health-check` to know uptime of the system
+-   POST `/reset-limit` to update the counter of the rate limiting logic (`requestLimit`) ddb table
+-   PATCH `/mark-concurrency-zero` this is used to make the concurrency of all other lambdas to zero
 
 For more detailed information about the API contracts, please refer to the [API contract](./openapi.yaml).
 
@@ -182,6 +189,13 @@ The Feature Flag Backend project uses DynamoDB as the database. The data model c
 - createdBy (string)
 - updatedAt (number)
 - updatedBy (string)
+
+### requestLimit
+- limitType (string) (partitionKey) 
+- limitValue (number)
+
+## Deployment instructions 
+The deployment instructions are mentioned in detailed manner in this [ticket](https://github.com/Real-Dev-Squad/feature-flag-backend/issues/149)
 
 For a visual representation of the data model, refer to the [ER diagram](./ER%20diagram.jpg).
 
