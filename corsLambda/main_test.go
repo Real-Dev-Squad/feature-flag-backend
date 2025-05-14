@@ -15,30 +15,6 @@ func TestHandler(t *testing.T) {
 	checkRequestAllowed = func(db *dynamodb.DynamoDB, concurrencyValue int) {
         // Simulate the behavior of the function (e.g., do nothing or log)
     }
-	
-	jwtHandler = func() func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, string, error) {
-        return func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, string, error) {
-            // Simulate different scenarios based on the "Cookie" header
-            cookie := req.Headers["Cookie"]
-            if cookie == "" {
-                return events.APIGatewayProxyResponse{
-                    StatusCode: http.StatusUnauthorized,
-                    Body:       "Unauthenticated",
-                }, "", nil
-            }
-
-            if cookie == "valid-cookie" {
-                return events.APIGatewayProxyResponse{
-                    StatusCode: http.StatusOK,
-                }, "valid-user-id", nil
-            }
-
-            return events.APIGatewayProxyResponse{
-                StatusCode: http.StatusUnauthorized,
-                Body:       "Invalid token",
-            }, "", nil
-        }
-    }
 
 	tests := []struct {
 		name         string

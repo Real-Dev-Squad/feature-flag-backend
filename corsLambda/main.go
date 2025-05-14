@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 
-	"github.com/Real-Dev-Squad/feature-flag-backend/jwt"
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
 	middleware "github.com/Real-Dev-Squad/feature-flag-backend/middlewares"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
@@ -12,7 +11,6 @@ import (
 )
 
 var checkRequestAllowed = utils.CheckRequestAllowed
-var jwtHandler = jwt.JWTMiddleware
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
@@ -22,11 +20,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	if !passed {
 		return corsResponse, err
 	}
-	
-	response, _, err := jwtHandler()(req)
-	if err != nil || response.StatusCode != http.StatusOK {
-		return response, err
-	}
+
 	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
 
 	return events.APIGatewayProxyResponse{
