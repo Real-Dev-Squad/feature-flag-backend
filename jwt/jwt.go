@@ -183,10 +183,12 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 		}
 
 		cookie := ""
-		if val, ok := req.Headers["Cookie"]; ok {
-			cookie = val
-		} else if val, ok := req.Headers["cookie"]; ok {
-			cookie = val
+		// Check for cookie header in case-insensitive manner
+		for key, val := range req.Headers {
+			if strings.ToLower(key) == "cookie" {
+				cookie = val
+				break
+			}
 		}
 		if cookie == "" {
 			return handleMiddlewareResponse(http.StatusUnauthorized, "Unauthenticated")
