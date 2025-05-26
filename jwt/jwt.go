@@ -182,7 +182,14 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 			return handleMiddlewareResponse(http.StatusInternalServerError, "Internal server error")
 		}
 
-		cookie := req.Headers["Cookie"]
+		cookie := ""
+		// Check for cookie header in case-insensitive manner
+		for key, val := range req.Headers {
+			if strings.ToLower(key) == "cookie" {
+				cookie = val
+				break
+			}
+		}
 		if cookie == "" {
 			return handleMiddlewareResponse(http.StatusUnauthorized, "Unauthenticated")
 		}
