@@ -1,9 +1,9 @@
 module health
 
-go 1.20
+go 1.25.1
 
 require (
-	github.com/aws/aws-lambda-go v1.40.0
+	github.com/aws/aws-lambda-go v1.50.0
 	github.com/stretchr/testify v1.7.2
 )
 
