@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,11 +16,13 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	lambda1 "github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	lambda "github.com/aws/aws-sdk-go/service/lambda"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	lambda "github.com/aws/aws-sdk-go-v2/service/lambda"
 )
 
 type Request struct {
@@ -115,11 +118,12 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		}, nil
 	}
 
-	sess, err := session.NewSession()
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Println("Error in creation of AWS session, please contact on #feature-flag-service discord channel.")
+		log.Printf("Error creating AWS config: %v", err)
+		return utils.ServerError(err)
 	}
-	lambdaClient := lambda.New(sess)
+	lambdaClient := lambda.NewFromConfig(cfg)
 
 	var request = Request{
 		FunctionNames: []string{createFeatureFlagFunctionName,
@@ -134,24 +138,44 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 	}
 
 	var wg sync.WaitGroup
+	errChan := make(chan error, len(request.FunctionNames))
+	
 	for _, functionName := range request.FunctionNames {
 		wg.Add(1)
 		go func(fn string) {
 			defer wg.Done()
 			input := &lambda.DeleteFunctionConcurrencyInput{
-				FunctionName: &fn,
+				FunctionName: aws.String(fn),
 			}
-			_, err := lambdaClient.DeleteFunctionConcurrency(input)
+			_, err := lambdaClient.DeleteFunctionConcurrency(ctx, input)
 			if err != nil {
 				log.Printf("Error in resetting the concurrency for the lambda name %s: %v", fn, err)
-				utils.ServerError(err)
+				errChan <- err
+				return
 			}
 			log.Printf("Reset the reserved concurrency for the function %s", fn)
 		}(functionName)
 	}
 	wg.Wait()
+	close(errChan)
 
-	err = updateConcurrencyLimitInDB(concurrencyLimitRequest.PendingLimit)
+	// Collect any errors from goroutines
+	var errors []error
+	for err := range errChan {
+		errors = append(errors, err)
+	}
+
+	// If any operations failed, return an error response
+	if len(errors) > 0 {
+		log.Printf("Failed to reset concurrency for %d function(s)", len(errors))
+		return events.APIGatewayProxyResponse{
+			Body:       fmt.Sprintf("Failed to reset concurrency for %d function(s)", len(errors)),
+			StatusCode: http.StatusInternalServerError,
+			Headers:    corsHeaders,
+		}, nil
+	}
+
+	err = updateConcurrencyLimitInDB(ctx, concurrencyLimitRequest.PendingLimit)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			Body:       "Failed to update concurrency limit in database",
@@ -167,25 +191,25 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 	}, nil
 }
 
-func updateConcurrencyLimitInDB(limit int16) error {
+func updateConcurrencyLimitInDB(ctx context.Context, limit int16) error {
 	db := database.CreateDynamoDB()
 
 	requestLimitInput := &dynamodb.GetItemInput{
 		TableName: aws.String(requestLimitTableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"limitType": {
-				S: aws.String("pendingLimit"),
+		Key: map[string]types.AttributeValue{
+			"limitType": &types.AttributeValueMemberS{
+				Value: "pendingLimit",
 			},
 		},
 	}
 
-	requestLimitResult, err := db.GetItem(requestLimitInput)
+	requestLimitResult, err := db.GetItem(ctx, requestLimitInput)
 	if err != nil {
 		log.Println(err, "is the error in request limit fetching")
 	}
 
 	requestLimitResponse := new(models.RequestLimit)
-	err = dynamodbattribute.UnmarshalMap(requestLimitResult.Item, requestLimitResponse)
+	err = attributevalue.UnmarshalMap(requestLimitResult.Item, requestLimitResponse)
 
 	if err != nil {
 		log.Println(err, "is the error")
@@ -196,7 +220,7 @@ func updateConcurrencyLimitInDB(limit int16) error {
 		LimitValue: limit,
 	}
 
-	marshalledInput, err := dynamodbattribute.MarshalMap(requestLimitUpdateInput)
+	marshalledInput, err := attributevalue.MarshalMap(requestLimitUpdateInput)
 	if err != nil {
 		log.Println("Error in marshalling the request")
 	}
@@ -206,7 +230,7 @@ func updateConcurrencyLimitInDB(limit int16) error {
 		Item:      marshalledInput,
 	}
 
-	_, err = db.PutItem(putItemInput)
+	_, err = db.PutItem(ctx, putItemInput)
 	if err != nil {
 		log.Println("Error in updating the request limit counters", err)
 		return nil

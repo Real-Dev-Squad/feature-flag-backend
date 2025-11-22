@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/smithy-go"
 )
 
 func ClientError(statusCode int, body string) (events.APIGatewayProxyResponse, error) {
@@ -39,8 +40,9 @@ func ServerError(err error) (events.APIGatewayProxyResponse, error) {
 }
 
 func DdbError(err error) {
-	if awsErr, ok := err.(awserr.Error); ok {
-		log.Printf("Error code %s, Error message %s", awsErr.Code(), awsErr.Error())
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) {
+		log.Printf("Error code %s, Error message %s", apiErr.ErrorCode(), apiErr.ErrorMessage())
 	} else {
 		log.Println(err.Error())
 	}

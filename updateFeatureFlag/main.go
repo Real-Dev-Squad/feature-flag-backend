@@ -13,9 +13,12 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"context"
+	"errors"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -25,53 +28,52 @@ func init() {
 	validate = validator.New()
 }
 
-func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
+func updateFeatureFlag(ctx context.Context, flagId string, updateFeatureFlagRequest utils.UpdateFeatureFlagRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
-	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	utils.CheckRequestAllowed(ctx, db, utils.ConcurrencyDisablingLambda)
 
 	input := &dynamodb.UpdateItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			"id": {
-				S: aws.String(flagId),
+		Key: map[string]types.AttributeValue{
+			"id": &types.AttributeValueMemberS{
+				Value: flagId,
 			},
 		},
 		TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":status": {
-				S: aws.String(updateFeatureFlagRequest.Status),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":status": &types.AttributeValueMemberS{
+				Value: updateFeatureFlagRequest.Status,
 			},
-			":updatedAt": {
-				N: aws.String(strconv.Itoa(int(time.Now().Unix()))),
+			":updatedAt": &types.AttributeValueMemberN{
+				Value: strconv.Itoa(int(time.Now().Unix())),
 			},
-			":updatedBy": {
-				S: aws.String(updateFeatureFlagRequest.UserId),
+			":updatedBy": &types.AttributeValueMemberS{
+				Value: updateFeatureFlagRequest.UserId,
 			},
 		},
 		UpdateExpression: aws.String("set #status = :status, #updatedAt = :updatedAt, #updatedBy = :updatedBy"),
-		ExpressionAttributeNames: map[string]*string{
-			"#status":    aws.String("status"),
-			"#updatedAt": aws.String("updatedAt"),
-			"#updatedBy": aws.String("updatedBy"),
+		ExpressionAttributeNames: map[string]string{
+			"#status":    "status",
+			"#updatedAt": "updatedAt",
+			"#updatedBy": "updatedBy",
 		},
-		ReturnValues:        aws.String("ALL_NEW"),
+		ReturnValues:        types.ReturnValueAllNew,
 		ConditionExpression: aws.String("attribute_exists(id)"),
 	}
 
-	result, err := db.UpdateItem(input)
+	result, err := db.UpdateItem(ctx, input)
 
 	//throw the response on conditional check failed exception
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
-				return utils.ClientError(http.StatusNotFound, "Feature flag with given flagId doesn't exists")
-			}
+		var conditionalCheckErr *types.ConditionalCheckFailedException
+		if errors.As(err, &conditionalCheckErr) {
+			return utils.ClientError(http.StatusNotFound, "Feature flag with given flagId doesn't exists")
 		}
 		utils.ServerError(err)
 	}
 
 	featureFlag := new(utils.FeatureFlagResponse)
-	err = database.UnmarshalMap(result.Attributes, &featureFlag)
+	err = database.UnmarshalMap(result.Attributes, featureFlag)
 
 	if err != nil {
 		log.Printf("Error is %v", err)
@@ -90,7 +92,7 @@ func updateFeatureFlag(flagId string, updateFeatureFlagRequest utils.UpdateFeatu
 	}, nil
 }
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	id, _ := request.PathParameters["flagId"]
 
 	corsResponse, err, passed := middleware.HandleCORS(request)
@@ -133,7 +135,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return response, nil
 	}
 
-	response, err := updateFeatureFlag(id, updateFeatureFlagRequest)
+	response, err := updateFeatureFlag(ctx, id, updateFeatureFlagRequest)
 	if err != nil {
 		return response, err
 	}

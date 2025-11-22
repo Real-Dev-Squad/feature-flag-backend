@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	corsResponse, err, passed := middleware.HandleCORS(req)
 
 	if !passed {

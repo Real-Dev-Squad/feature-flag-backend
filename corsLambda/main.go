@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/database"
@@ -10,12 +11,10 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var checkRequestAllowed = utils.CheckRequestAllowed
-
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
-	checkRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	utils.CheckRequestAllowed(ctx, db, utils.ConcurrencyDisablingLambda)
 	corsResponse, err, passed := middleware.HandleCORS(req)
 	if !passed {
 		return corsResponse, err

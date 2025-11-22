@@ -13,8 +13,10 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
@@ -25,7 +27,7 @@ func init() {
 	validate = validator.New()
 }
 
-func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.CreateFeatureFlagRequest) (models.FeatureFlag, error) {
+func createFeatureFlag(ctx context.Context, db *dynamodb.Client, createFeatureFlagRequest utils.CreateFeatureFlagRequest) (models.FeatureFlag, error) {
 	featureFlag := models.FeatureFlag{
 		Id:          uuid.New().String(),
 		Name:        createFeatureFlagRequest.FlagName,
@@ -48,7 +50,7 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 		Item:      item,
 	}
 
-	_, err = db.PutItem(input)
+	_, err = db.PutItem(ctx, input)
 	if err != nil {
 		log.Printf("Error putting item to Dynamodb: \n %v", err)
 		return models.FeatureFlag{}, err
@@ -56,12 +58,12 @@ func createFeatureFlag(db *dynamodb.DynamoDB, createFeatureFlagRequest utils.Cre
 	return featureFlag, nil
 }
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var createFeatureFlagRequest utils.CreateFeatureFlagRequest
 
 	db := database.CreateDynamoDB()
 
-	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	utils.CheckRequestAllowed(ctx, db, utils.ConcurrencyDisablingLambda)
 
 	corsResponse, err, passed := middleware.HandleCORS(req)
 	if !passed {
@@ -88,7 +90,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		}, nil
 	}
 
-	featureFlag, err := createFeatureFlag(db, createFeatureFlagRequest)
+	featureFlag, err := createFeatureFlag(ctx, db, createFeatureFlagRequest)
 	if err != nil {
 		log.Printf("Error while creating feature flag: \n %v ", err)
 		return utils.ServerError(err)
