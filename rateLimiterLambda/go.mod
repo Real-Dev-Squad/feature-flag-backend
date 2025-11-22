@@ -1,10 +1,10 @@
 module rateLimiterLambda
 
-go 1.20
+go 1.25.1
 
 require (
 	github.com/Real-Dev-Squad/feature-flag-backend v0.0.0-20250429021215-c7aa74a9164c
-	github.com/aws/aws-lambda-go v1.41.0
+	github.com/aws/aws-lambda-go v1.50.0
 	github.com/aws/aws-sdk-go v1.55.7
 )
 
