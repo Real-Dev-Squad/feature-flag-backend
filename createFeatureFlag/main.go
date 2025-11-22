@@ -58,8 +58,7 @@ func createFeatureFlag(ctx context.Context, db *dynamodb.Client, createFeatureFl
 	return featureFlag, nil
 }
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	ctx := context.TODO()
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var createFeatureFlagRequest utils.CreateFeatureFlagRequest
 
 	db := database.CreateDynamoDB()

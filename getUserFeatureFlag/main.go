@@ -47,7 +47,7 @@ func processGetById(ctx context.Context, userId string, flagId string) (*utils.F
 	}
 
 	featureFlagUserMapping := new(utils.FeatureFlagUserMappingResponse)
-	err = attributevalue.UnmarshalMap(result.Item, &featureFlagUserMapping)
+	err = attributevalue.UnmarshalMap(result.Item, featureFlagUserMapping)
 
 	if err != nil {
 		log.Println(err)
@@ -56,8 +56,7 @@ func processGetById(ctx context.Context, userId string, flagId string) (*utils.F
 	return featureFlagUserMapping, nil
 }
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	ctx := context.TODO()
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	corsResponse, err, passed := middleware.HandleCORS(req)
 	if !passed {
 		return corsResponse, err

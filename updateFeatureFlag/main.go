@@ -73,7 +73,7 @@ func updateFeatureFlag(ctx context.Context, flagId string, updateFeatureFlagRequ
 	}
 
 	featureFlag := new(utils.FeatureFlagResponse)
-	err = database.UnmarshalMap(result.Attributes, &featureFlag)
+	err = database.UnmarshalMap(result.Attributes, featureFlag)
 
 	if err != nil {
 		log.Printf("Error is %v", err)
@@ -92,7 +92,7 @@ func updateFeatureFlag(ctx context.Context, flagId string, updateFeatureFlagRequ
 	}, nil
 }
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	id, _ := request.PathParameters["flagId"]
 
 	corsResponse, err, passed := middleware.HandleCORS(request)
@@ -135,7 +135,6 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return response, nil
 	}
 
-	ctx := context.TODO()
 	response, err := updateFeatureFlag(ctx, id, updateFeatureFlagRequest)
 	if err != nil {
 		return response, err

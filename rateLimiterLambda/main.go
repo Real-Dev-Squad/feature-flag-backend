@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -86,7 +87,11 @@ func init() {
 func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxyResponse, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Println("Error in creation of AWS config, please contact on #feature-flag-service discord channel.")
+		log.Printf("Error loading AWS config: %v", err)
+		return events.APIGatewayProxyResponse{
+			Body:       "Internal server error: failed to initialize AWS configuration",
+			StatusCode: http.StatusInternalServerError,
+		}, nil
 	}
 	lambdaClient := lambda.NewFromConfig(cfg)
 
@@ -112,6 +117,8 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 	}
 
 	var wg sync.WaitGroup
+	errChan := make(chan error, len(request.FunctionNames))
+	
 	for _, functionName := range request.FunctionNames {
 		// Increment the WaitGroup counter
 		wg.Add(1)
@@ -129,7 +136,8 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 			_, err := lambdaClient.PutFunctionConcurrency(ctx, input)
 			if err != nil {
 				log.Printf("Error in setting the concurrency for the lambda name %s: %v", fn, err)
-				utils.ServerError(err)
+				errChan <- err
+				return
 			}
 
 			log.Printf("Changed the reserved concurrency for the function %s to %d", fn, lambdaConcurrencyValue.IntValue)
@@ -138,9 +146,26 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+	close(errChan)
+
+	// Collect any errors from goroutines
+	var errors []error
+	for err := range errChan {
+		errors = append(errors, err)
+	}
+
+	// If any operations failed, return an error response
+	if len(errors) > 0 {
+		log.Printf("Failed to update concurrency for %d function(s)", len(errors))
+		return events.APIGatewayProxyResponse{
+			Body:       fmt.Sprintf("Failed to update concurrency for %d function(s)", len(errors)),
+			StatusCode: http.StatusInternalServerError,
+		}, nil
+	}
+
 	return events.APIGatewayProxyResponse{
 		Body:       "Changed the reserved concurrency of the lambda function GetFeatureFlagFunction",
-		StatusCode: 200,
+		StatusCode: http.StatusOK,
 	}, nil
 
 }

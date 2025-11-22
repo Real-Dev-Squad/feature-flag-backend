@@ -11,8 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	ctx := context.TODO()
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	db := database.CreateDynamoDB()
 
 	utils.CheckRequestAllowed(ctx, db, utils.ConcurrencyDisablingLambda)

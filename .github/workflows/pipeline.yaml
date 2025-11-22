@@ -30,7 +30,8 @@ jobs:
     environment: ${{ needs.prepare.outputs.branch_name }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.25.1'
       - uses: actions/setup-python@v2

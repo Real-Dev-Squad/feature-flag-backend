@@ -56,8 +56,7 @@ func processGetById(ctx context.Context, userId string) ([]utils.FeatureFlagUser
 	return listOfFeatureFlagUserMapping, nil
 }
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	ctx := context.TODO()
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	corsResponse, err, passed := middleware.HandleCORS(req)
 	if !passed {
 		return corsResponse, err

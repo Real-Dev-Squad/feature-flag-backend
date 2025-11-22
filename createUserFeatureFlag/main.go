@@ -55,8 +55,7 @@ func processPutById(ctx context.Context, userId string, flagId string, featureFl
 	return &featureFlagUserMapping, nil
 }
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	ctx := context.TODO()
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	userId := req.PathParameters["userId"]
 	flagId := req.PathParameters["flagId"]
 

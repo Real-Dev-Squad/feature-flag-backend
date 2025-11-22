@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -11,11 +12,10 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
-	"context"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -110,7 +110,9 @@ func (j *JWTUtils) initialize() error {
 }
 
 func getPublicKeyFromParameterStore(parameterName string) (string, error) {
-	ctx := context.TODO()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return "", err

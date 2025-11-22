@@ -75,7 +75,7 @@ func processUpdateByIds(ctx context.Context, userId string, flagId string, reque
 	}
 
 	featureFlagUserMapping := new(utils.FeatureFlagUserMappingResponse)
-	err = attributevalue.UnmarshalMap(result.Attributes, &featureFlagUserMapping)
+	err = attributevalue.UnmarshalMap(result.Attributes, featureFlagUserMapping)
 
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func processUpdateByIds(ctx context.Context, userId string, flagId string, reque
 	return featureFlagUserMapping, nil
 }
 
-func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	userId := req.PathParameters["userId"]
 	flagId := req.PathParameters["flagId"]
 
@@ -124,7 +124,6 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		return response, nil
 	}
 
-	ctx := context.TODO()
 	result, err := processUpdateByIds(ctx, userId, flagId, requestBody)
 	if err != nil {
 		var conditionalCheckErr *types.ConditionalCheckFailedException

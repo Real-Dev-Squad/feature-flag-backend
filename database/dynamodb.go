@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
@@ -15,16 +16,23 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-var db *dynamodb.Client
-var cfg aws.Config
-var marshalMapFunction = attributevalue.MarshalMap
-var unmarshalMapFunction = attributevalue.UnmarshalMap
+var (
+	db                    *dynamodb.Client
+	cfg                   aws.Config
+	marshalMapFunction     = attributevalue.MarshalMap
+	unmarshalMapFunction   = attributevalue.UnmarshalMap
+	initOnce              sync.Once
+)
 
 func init() {
 	env := os.Getenv(utils.ENV)
 	log.Println("ENV=", env)
 }
 
+// CreateDynamoDB initializes and returns a DynamoDB client.
+// The client is initialized once in a thread-safe manner using sync.Once.
+// For DEVELOPMENT and TESTING environments, it uses a local DynamoDB endpoint.
+// For PRODUCTION, it uses the default AWS endpoint.
 func CreateDynamoDB() *dynamodb.Client {
 	defer func() {
 		if err := recover(); err != nil {
@@ -35,42 +43,44 @@ func CreateDynamoDB() *dynamodb.Client {
 	env, found := os.LookupEnv(utils.ENV)
 	if !found {
 		log.Println("ENV is not set, please store it.")
-
 		utils.ServerError(errors.New("Env is not set, please set DEVELOPMENT or PRODUCTION"))
 	}
 
-	var err error
-
-	if db == nil {
+	// Thread-safe initialization using sync.Once
+	initOnce.Do(func() {
 		ctx := context.TODO()
-		if env == utils.DEV || env == utils.TEST {
+		var err error
+
+		// Use local DynamoDB endpoint for DEVELOPMENT and TESTING environments
+		// Note: TESTING is treated as local for development/testing purposes
+		isLocalEnv := env == utils.DEV || env == utils.TEST
+
+		if isLocalEnv {
 			cfg, err = config.LoadDefaultConfig(ctx,
 				config.WithRegion(os.Getenv("AWS_REGION")),
 			)
 
 			if err != nil {
-				log.Printf("Error creating the dynamodb config in DEV env \n %v", err)
-				utils.ServerError(errors.New("Error creating dynamodb config in DEV env"))
+				log.Printf("Error creating the dynamodb config in %s env \n %v", env, err)
+				utils.ServerError(errors.New("Error creating dynamodb config in " + env + " env"))
 			}
 
-		} else { //ENV = PROD
-
+			// Create DynamoDB client with custom endpoint for local development
+			db = dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
+				o.BaseEndpoint = aws.String("http://host.docker.internal:8000")
+			})
+		} else {
+			// PRODUCTION environment - use default AWS endpoint
 			cfg, err = config.LoadDefaultConfig(ctx)
 
 			if err != nil {
 				log.Printf("Error creating the dynamodb config in PROD env \n %v", err)
 				utils.ServerError(errors.New("Error creating dynamodb config in PROD env"))
 			}
-		}
-		// Create DynamoDB client with custom endpoint for local development
-		if env == utils.DEV || env == utils.TEST {
-			db = dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
-				o.BaseEndpoint = aws.String("http://host.docker.internal:8000")
-			})
-		} else {
+
 			db = dynamodb.NewFromConfig(cfg)
 		}
-	}
+	})
 
 	return db
 }
@@ -137,7 +147,7 @@ func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string)
 	}
 
 	featureFlagResponse := new(utils.FeatureFlagResponse)
-	err = UnmarshalMap(result.Item, &featureFlagResponse)
+	err = UnmarshalMap(result.Item, featureFlagResponse)
 
 	if err != nil {
 		log.Println(err, " is the error while converting to ddb object")

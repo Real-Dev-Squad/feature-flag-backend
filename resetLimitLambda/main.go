@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -119,7 +120,8 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Println("Error in creation of AWS config, please contact on #feature-flag-service discord channel.")
+		log.Printf("Error creating AWS config: %v", err)
+		return utils.ServerError(err)
 	}
 	lambdaClient := lambda.NewFromConfig(cfg)
 
@@ -136,6 +138,8 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 	}
 
 	var wg sync.WaitGroup
+	errChan := make(chan error, len(request.FunctionNames))
+	
 	for _, functionName := range request.FunctionNames {
 		wg.Add(1)
 		go func(fn string) {
@@ -146,12 +150,30 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 			_, err := lambdaClient.DeleteFunctionConcurrency(ctx, input)
 			if err != nil {
 				log.Printf("Error in resetting the concurrency for the lambda name %s: %v", fn, err)
-				utils.ServerError(err)
+				errChan <- err
+				return
 			}
 			log.Printf("Reset the reserved concurrency for the function %s", fn)
 		}(functionName)
 	}
 	wg.Wait()
+	close(errChan)
+
+	// Collect any errors from goroutines
+	var errors []error
+	for err := range errChan {
+		errors = append(errors, err)
+	}
+
+	// If any operations failed, return an error response
+	if len(errors) > 0 {
+		log.Printf("Failed to reset concurrency for %d function(s)", len(errors))
+		return events.APIGatewayProxyResponse{
+			Body:       fmt.Sprintf("Failed to reset concurrency for %d function(s)", len(errors)),
+			StatusCode: http.StatusInternalServerError,
+			Headers:    corsHeaders,
+		}, nil
+	}
 
 	err = updateConcurrencyLimitInDB(ctx, concurrencyLimitRequest.PendingLimit)
 	if err != nil {
