@@ -11,30 +11,33 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	lambda "github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-func processGetById(userId string, flagId string) (*utils.FeatureFlagUserMappingResponse, error) {
+func processGetById(ctx context.Context, userId string, flagId string) (*utils.FeatureFlagUserMappingResponse, error) {
 
 	db := database.CreateDynamoDB()
 
-	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	utils.CheckRequestAllowed(ctx, db, utils.ConcurrencyDisablingLambda)
 
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(utils.FEATURE_FLAG_USER_MAPPING_TABLE_NAME),
-		Key: map[string]*dynamodb.AttributeValue{
-			utils.UserId: { // partition key
-				S: aws.String(userId),
+		Key: map[string]types.AttributeValue{
+			utils.UserId: &types.AttributeValueMemberS{ // partition key
+				Value: userId,
 			},
-			utils.FlagId: { // sort key
-				S: aws.String(flagId),
+			utils.FlagId: &types.AttributeValueMemberS{ // sort key
+				Value: flagId,
 			},
 		},
 	}
 
-	result, err := db.GetItem(input)
+	result, err := db.GetItem(ctx, input)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -44,7 +47,7 @@ func processGetById(userId string, flagId string) (*utils.FeatureFlagUserMapping
 	}
 
 	featureFlagUserMapping := new(utils.FeatureFlagUserMappingResponse)
-	err = dynamodbattribute.UnmarshalMap(result.Item, &featureFlagUserMapping)
+	err = attributevalue.UnmarshalMap(result.Item, &featureFlagUserMapping)
 
 	if err != nil {
 		log.Println(err)
@@ -54,6 +57,7 @@ func processGetById(userId string, flagId string) (*utils.FeatureFlagUserMapping
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	ctx := context.TODO()
 	corsResponse, err, passed := middleware.HandleCORS(req)
 	if !passed {
 		return corsResponse, err
@@ -70,7 +74,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 	flagId := req.PathParameters["flagId"]
 
-	result, err := processGetById(userId, flagId)
+	result, err := processGetById(ctx, userId, flagId)
 
 	if err != nil {
 		return utils.ServerError(err)

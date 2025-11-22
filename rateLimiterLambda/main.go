@@ -11,9 +11,9 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	lambda1 "github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	lambda "github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	lambda "github.com/aws/aws-sdk-go-v2/service/lambda"
 )
 
 type Request struct {
@@ -84,11 +84,11 @@ func init() {
 }
 
 func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxyResponse, error) {
-	sess, err := session.NewSession()
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Println("Error in creation of AWS session, please contact on #feature-flag-service discord channel.")
+		log.Println("Error in creation of AWS config, please contact on #feature-flag-service discord channel.")
 	}
-	lambdaClient := lambda.New(sess)
+	lambdaClient := lambda.NewFromConfig(cfg)
 
 	var lambdaConcurrencyValue LambdaConcurrencyValue
 	if err := json.Unmarshal(event, &lambdaConcurrencyValue); err != nil {
@@ -121,12 +121,12 @@ func handler(ctx context.Context, event json.RawMessage) (events.APIGatewayProxy
 			defer wg.Done()
 
 			input := &lambda.PutFunctionConcurrencyInput{
-				FunctionName:                 &fn,
-				ReservedConcurrentExecutions: aws.Int64(int64(lambdaConcurrencyValue.IntValue)),
+				FunctionName:                 aws.String(fn),
+				ReservedConcurrentExecutions: aws.Int32(int32(lambdaConcurrencyValue.IntValue)),
 			}
 
 			log.Println("Is the function name", fn)
-			_, err := lambdaClient.PutFunctionConcurrency(input)
+			_, err := lambdaClient.PutFunctionConcurrency(ctx, input)
 			if err != nil {
 				log.Printf("Error in setting the concurrency for the lambda name %s: %v", fn, err)
 				utils.ServerError(err)

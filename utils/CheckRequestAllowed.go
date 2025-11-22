@@ -1,16 +1,18 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/models"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	lambdaInvoke "github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	lambdaInvoke "github.com/aws/aws-sdk-go-v2/service/lambda"
 )
 
 var raterLimiterFunctionName string
@@ -24,24 +26,24 @@ func init() {
 	}
 }
 
-func CheckRequestAllowed(db *dynamodb.DynamoDB, concurrencyValue int) {
+func CheckRequestAllowed(ctx context.Context, db *dynamodb.Client, concurrencyValue int) {
 	// check the quota values
 	requestLimitInput := &dynamodb.GetItemInput{
 		TableName: aws.String(requestLimitTableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"limitType": {
-				S: aws.String("pendingLimit"),
+		Key: map[string]types.AttributeValue{
+			"limitType": &types.AttributeValueMemberS{
+				Value: "pendingLimit",
 			},
 		},
 	}
 
-	requestLimitResult, err := db.GetItem(requestLimitInput)
+	requestLimitResult, err := db.GetItem(ctx, requestLimitInput)
 	if err != nil {
 		log.Println(err, "is the error in request limit fetching")
 	}
 
 	requestLimitResponse := new(models.RequestLimit)
-	err = dynamodbattribute.UnmarshalMap(requestLimitResult.Item, requestLimitResponse)
+	err = attributevalue.UnmarshalMap(requestLimitResult.Item, requestLimitResponse)
 
 	if err != nil {
 		log.Println(err, "is the error")
@@ -54,7 +56,7 @@ func CheckRequestAllowed(db *dynamodb.DynamoDB, concurrencyValue int) {
 			LimitValue: requestLimitResponse.LimitValue - 1,
 		}
 
-		marshalledInput, err := dynamodbattribute.MarshalMap(requestLimitUpdateInput)
+		marshalledInput, err := attributevalue.MarshalMap(requestLimitUpdateInput)
 		if err != nil {
 			log.Println("Error in marshalling the request")
 		}
@@ -64,7 +66,7 @@ func CheckRequestAllowed(db *dynamodb.DynamoDB, concurrencyValue int) {
 			Item:      marshalledInput,
 		}
 
-		_, err = db.PutItem(putItemInput)
+		_, err = db.PutItem(ctx, putItemInput)
 		if err != nil {
 			log.Println("Error in updating the request limit counters", err)
 			return
@@ -72,20 +74,21 @@ func CheckRequestAllowed(db *dynamodb.DynamoDB, concurrencyValue int) {
 		log.Println("The updated limit is ", requestLimitUpdateInput.LimitValue)
 	} else {
 		//mark the concurrency of all the other lambdas to zero
-		sess, err := session.NewSession()
+		cfg, err := config.LoadDefaultConfig(ctx)
 
 		if err != nil {
-			log.Println("Error in creating AWS session to access any service")
+			log.Println("Error in creating AWS config to access any service")
 			ServerError(err)
+			return
 		}
-		lambdaClient := lambdaInvoke.New(sess)
+		lambdaClient := lambdaInvoke.NewFromConfig(cfg)
 
 		concurrencyValue := 0
 		lambdaInvokeInput := lambdaInvoke.InvokeInput{
 			FunctionName: aws.String(raterLimiterFunctionName),
 			Payload:      []byte(fmt.Sprintf(`{"intValue" : %d}`, concurrencyValue)),
 		}
-		result, err := lambdaClient.Invoke(&lambdaInvokeInput)
+		result, err := lambdaClient.Invoke(ctx, &lambdaInvokeInput)
 		if err != nil {
 			log.Println("There is some error in calling the new lambda created")
 			ServerError(err)

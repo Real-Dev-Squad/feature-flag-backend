@@ -20,7 +20,7 @@ Link for the documentation - https://github.com/Real-Dev-Squad/feature-flag-back
 You should have some things pre-installed :
 - [VS Code](https://code.visualstudio.com/) or any other IDE
 - [Git](https://git-scm.com/)
-- [Golang](https://go.dev/)(version 1.20 or later)
+- [Golang](https://go.dev/)(version 1.25.1 or later)
 - [Docker](https://www.docker.com/)
 
 1. **Clone the repository**

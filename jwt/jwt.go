@@ -14,9 +14,11 @@ import (
 
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -108,18 +110,19 @@ func (j *JWTUtils) initialize() error {
 }
 
 func getPublicKeyFromParameterStore(parameterName string) (string, error) {
-	sess, err := session.NewSession()
+	ctx := context.TODO()
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	svc := ssm.New(sess)
+	svc := ssm.NewFromConfig(cfg)
 	input := &ssm.GetParameterInput{
 		Name:           aws.String(parameterName),
 		WithDecryption: aws.Bool(true),
 	}
 
-	result, err := svc.GetParameter(input)
+	result, err := svc.GetParameter(ctx, input)
 	if err != nil {
 		return "", err
 	}

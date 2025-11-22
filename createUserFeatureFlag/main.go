@@ -14,9 +14,12 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"context"
+	"errors"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -26,11 +29,11 @@ func init() {
 	validate = validator.New()
 }
 
-func processPutById(userId string, flagId string, featureFlagUserMapping models.FeatureFlagUserMapping) (*models.FeatureFlagUserMapping, error) {
+func processPutById(ctx context.Context, userId string, flagId string, featureFlagUserMapping models.FeatureFlagUserMapping) (*models.FeatureFlagUserMapping, error) {
 
 	db := database.CreateDynamoDB()
 
-	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	utils.CheckRequestAllowed(ctx, db, utils.ConcurrencyDisablingLambda)
 
 	item, err := database.MarshalMap(featureFlagUserMapping)
 	if err != nil {
@@ -43,7 +46,7 @@ func processPutById(userId string, flagId string, featureFlagUserMapping models.
 		ConditionExpression: aws.String("attribute_not_exists(userId)"),
 	}
 
-	_, err = db.PutItem(input)
+	_, err = db.PutItem(ctx, input)
 	if err != nil {
 		utils.DdbError(err)
 		return nil, err
@@ -53,6 +56,7 @@ func processPutById(userId string, flagId string, featureFlagUserMapping models.
 }
 
 func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	ctx := context.TODO()
 	userId := req.PathParameters["userId"]
 	flagId := req.PathParameters["flagId"]
 
@@ -102,12 +106,11 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		UpdatedBy: requestBody.UserId,
 	}
 
-	result, err := processPutById(userId, flagId, featureFlagUserMapping)
+	result, err := processPutById(ctx, userId, flagId, featureFlagUserMapping)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
-				return utils.ClientError(http.StatusNotFound, "Mapping of User Id and Flag Id already exists")
-			}
+		var conditionalCheckErr *types.ConditionalCheckFailedException
+		if errors.As(err, &conditionalCheckErr) {
+			return utils.ClientError(http.StatusNotFound, "Mapping of User Id and Flag Id already exists")
 		}
 		return utils.ServerError(err)
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -11,17 +12,17 @@ import (
 	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-func getAllFeatureFlags(db *dynamodb.DynamoDB) ([]utils.FeatureFlagResponse, error) {
+func getAllFeatureFlags(ctx context.Context, db *dynamodb.Client) ([]utils.FeatureFlagResponse, error) {
 
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(utils.FEATURE_FLAG_TABLE_NAME),
 	}
-	result, err := db.Scan(input)
+	result, err := db.Scan(ctx, input)
 
 	if err != nil {
 		utils.DdbError(err)
@@ -34,7 +35,7 @@ func getAllFeatureFlags(db *dynamodb.DynamoDB) ([]utils.FeatureFlagResponse, err
 
 	var featureFlagsResponse []utils.FeatureFlagResponse
 
-	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &featureFlagsResponse)
+	err = attributevalue.UnmarshalListOfMaps(result.Items, &featureFlagsResponse)
 	if err != nil {
 		log.Println("Something went wrong in unmarshalling all feature flags response", err)
 		return nil, err
@@ -44,9 +45,10 @@ func getAllFeatureFlags(db *dynamodb.DynamoDB) ([]utils.FeatureFlagResponse, err
 }
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	ctx := context.TODO()
 	db := database.CreateDynamoDB()
 
-	utils.CheckRequestAllowed(db, utils.ConcurrencyDisablingLambda)
+	utils.CheckRequestAllowed(ctx, db, utils.ConcurrencyDisablingLambda)
 
 	corsResponse, err, passed := middleware.HandleCORS(request)
 	if !passed {
@@ -60,7 +62,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	
 	corsHeaders := middleware.GetCORSHeadersV1(request.Headers)
 
-	featureFlagsResponse, err := getAllFeatureFlags(db)
+	featureFlagsResponse, err := getAllFeatureFlags(ctx, db)
 	if err != nil {
 		return utils.ServerError(err)
 	}
