@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
+	"feature-flag-backend/layer/models"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"

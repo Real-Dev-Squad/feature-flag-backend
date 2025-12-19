@@ -1,15 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/Real-Dev-Squad/feature-flag-backend/database"
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
-	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
+	"feature-flag-backend/layer/database"
+	"feature-flag-backend/layer/models"
+	"feature-flag-backend/layer/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -66,7 +67,7 @@ func TestHandler(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		response, err := handler(test.request)
+		response, err := handler(context.Background(), test.request)
 
 		assert.IsType(t, test.err, err)
 		assert.Equal(t, test.statusCode, response.StatusCode)

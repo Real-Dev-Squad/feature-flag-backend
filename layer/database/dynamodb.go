@@ -7,8 +7,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Real-Dev-Squad/feature-flag-backend/models"
-	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
+	"feature-flag-backend/layer/models"
+	"feature-flag-backend/layer/utils"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"

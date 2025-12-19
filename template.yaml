@@ -66,16 +66,27 @@ Parameters:
       - "DEVELOPMENT"
 
 Resources:
+  SharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: shared-utilities
+      Description: Shared utilities, database, models, jwt, and middlewares for feature flag backend
+      ContentUri: layer/
+      CompatibleRuntimes:
+        - provided.al2
+
   CorsLambda:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: corsLambda/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         Preflight:
           Type: Api
@@ -86,13 +97,15 @@ Resources:
   HealthCheckFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: health-check/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64  
+      Layers:
+        - !Ref SharedLayer  
       Events:
         CatchAll:
           Type: Api
@@ -103,13 +116,15 @@ Resources:
   RateLimiterFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: rateLimiterLambda/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64  
+      Layers:
+        - !Ref SharedLayer  
       Events:
         CatchAll:
           Type: Api
@@ -120,13 +135,15 @@ Resources:
   ResetLimitFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: resetLimitLambda/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64  
+      Layers:
+        - !Ref SharedLayer  
       Events:
         CatchAll:
           Type: Api
@@ -137,13 +154,15 @@ Resources:
   GetFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: getFeatureFlagById/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         CatchAll:
           Type: Api
@@ -154,13 +173,15 @@ Resources:
   CreateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: createFeatureFlag/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         CatchAll:
           Type: Api
@@ -171,13 +192,15 @@ Resources:
   UpdateFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: updateFeatureFlag/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         CatchAll:
           Type: Api
@@ -188,13 +211,15 @@ Resources:
   GetAllFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: getAllFeatureFlags/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         CatchAll:
           Type: Api
@@ -205,13 +230,15 @@ Resources:
   GetUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: getUserFeatureFlag/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         CatchAll:
           Type: Api
@@ -222,13 +249,15 @@ Resources:
   GetUserFeatureFlagsFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: getUserFeatureFlags/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         CatchAll:
           Type: Api
@@ -239,13 +268,15 @@ Resources:
   CreateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: createUserFeatureFlag/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         CatchAll:
           Type: Api
@@ -256,13 +287,15 @@ Resources:
   UpdateUserFeatureFlagFunction:
     Type: 'AWS::Serverless::Function'
     Metadata:
-      BuildMethod: makefile
+      BuildMethod: go1.x
     Properties:
       CodeUri: updateUserFeatureFlag/
       Handler: bootstrap
       Runtime: provided.al2
       Architectures:
         - x86_64
+      Layers:
+        - !Ref SharedLayer
       Events:
         CatchAll:
           Type: Api
