@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Real-Dev-Squad/feature-flag-backend/database"
-	middleware "github.com/Real-Dev-Squad/feature-flag-backend/middlewares"
-	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
+	"feature-flag-backend/layer/database"
+	middleware "feature-flag-backend/layer/middlewares"
+	"feature-flag-backend/layer/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )

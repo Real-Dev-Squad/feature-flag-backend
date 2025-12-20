@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
+	"feature-flag-backend/layer/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"

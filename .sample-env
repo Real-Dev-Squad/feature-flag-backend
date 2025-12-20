@@ -1,6 +1,59 @@
-FEATURE_FLAG_TABLE_NAME= Your feature flag table name
-ENVIRONMENT= DEVELOPMENT
-AWS_REGION= Your aws region
-FEATURE_FLAG_USER_MAPPING_TABLE_NAME= Your feature flag user mapping table name
-AWS_ACCESS_KEY= Your aws access key
-AWS_SECRET_KEY= Your aws secret key
+# Environment Variables for Feature Flag Backend
+# Copy this file to .env for local development
+
+# ============================================
+# REQUIRED - Core Configuration
+# ============================================
+
+# Environment type: DEVELOPMENT, TESTING, or PRODUCTION
+# - DEVELOPMENT/TESTING: Uses local DynamoDB (http://host.docker.internal:8000)
+# - PRODUCTION: Uses AWS DynamoDB (requires AWS credentials/IAM role)
+ENVIRONMENT=DEVELOPMENT
+
+# AWS Region (required for DEVELOPMENT/TESTING when using local DynamoDB)
+# Can be any valid AWS region (e.g., us-east-1, us-west-2)
+# Note: For local development, this is only used for AWS SDK config, not actual AWS calls
+AWS_REGION=us-east-1
+
+# ============================================
+# OPTIONAL - Local JWT Public Key (for local testing)
+# ============================================
+
+# JWT_PUBLIC_KEY - RSA public key in PEM format (for local development only)
+# If set, this will be used instead of fetching from AWS SSM Parameter Store
+# This allows you to test locally without AWS credentials
+# 
+# To get the public key:
+# 1. Contact your team to get the public key
+# 2. Or extract it from AWS SSM: aws ssm get-parameter --name STAGING_RDS_BACKEND_PUBLIC_KEY --with-decryption
+# 3. Format: Must be PEM format (starts with "-----BEGIN PUBLIC KEY-----")
+#
+# Example:
+# JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----
+# MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+# -----END PUBLIC KEY-----"
+#
+# Leave empty to use AWS SSM Parameter Store (requires AWS credentials)
+# JWT_PUBLIC_KEY=
+
+# ============================================
+# AUTOMATICALLY SET IN TEMPLATE.YAML
+# (Not needed in .env file - shown for reference only)
+# ============================================
+
+# RDS_BACKEND_PUBLIC_KEY_NAME - Automatically set based on environment
+#   PRODUCTION: "PROD_RDS_BACKEND_PUBLIC_KEY"
+#   DEVELOPMENT: "STAGING_RDS_BACKEND_PUBLIC_KEY"
+# Used for JWT token validation (fetches public key from AWS Systems Manager)
+
+# SESSION_COOKIE_NAME - Automatically set based on environment
+#   PRODUCTION: "rds-session"
+#   DEVELOPMENT: "rds-session-staging"
+# Used to extract JWT token from HTTP cookies
+
+# Lambda Function Names - Automatically set in template.yaml
+#   CreateFeatureFlagFunction, GetFeatureFlagFunction, etc.
+# Used by rateLimiterLambda and resetLimitLambda to manage concurrency
+
+# RateLimiterFunction - Automatically set in template.yaml
+# Used by CheckRequestAllowed to disable Lambda concurrency when quota is reached

@@ -1,20 +1,13 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/stretchr/testify/assert"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-
 )
-
-func TestHandler(t *testing.T) {
-
-	checkRequestAllowed = func(db *dynamodb.DynamoDB, concurrencyValue int) {
-        // Simulate the behavior of the function (e.g., do nothing or log)
-    }
 
 	tests := []struct {
 		name         string
@@ -83,7 +76,7 @@ func TestHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			response, err := handler(test.request)
+			response, err := handler(context.Background(), test.request)
 
 			assert.NoError(t, err)
 			assert.Equal(t, test.statusCode, response.StatusCode)

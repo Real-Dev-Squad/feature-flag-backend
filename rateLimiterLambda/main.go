@@ -9,7 +9,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Real-Dev-Squad/feature-flag-backend/utils"
+	"feature-flag-backend/layer/utils"
 	"github.com/aws/aws-lambda-go/events"
 	lambda1 "github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
