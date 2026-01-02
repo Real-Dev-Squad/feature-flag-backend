@@ -87,6 +87,9 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
       Events:
         Preflight:
           Type: Api
@@ -105,7 +108,18 @@ Resources:
       Architectures:
         - x86_64  
       Layers:
-        - !Ref SharedLayer  
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -124,7 +138,14 @@ Resources:
       Architectures:
         - x86_64  
       Layers:
-        - !Ref SharedLayer  
+        - !Ref SharedLayer
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:PutFunctionConcurrency
+              Resource: '*'
       Events:
         CatchAll:
           Type: Api
@@ -143,7 +164,10 @@ Resources:
       Architectures:
         - x86_64  
       Layers:
-        - !Ref SharedLayer  
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
       Events:
         CatchAll:
           Type: Api
@@ -163,6 +187,17 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -182,6 +217,17 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -201,6 +247,17 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -220,6 +277,17 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -239,6 +307,17 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -258,6 +337,17 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -277,6 +367,17 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -296,6 +397,17 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - DynamoDBCrudPolicy:
+            TableName: requestLimit
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
