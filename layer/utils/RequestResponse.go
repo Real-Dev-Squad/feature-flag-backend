@@ -41,3 +41,28 @@ type FeatureFlagUserMappingResponse struct {
 	UpdatedAt int64  `json:"updatedAt"`
 	UpdatedBy string `json:"updatedBy"`
 }
+
+type RegisterUserRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
+	Role     string `json:"role" validate:"omitempty,oneof=ADMIN DEVELOPER VIEWER"`
+}
+
+type LoginUserRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type UserResponse struct {
+	Id        string `json:"id"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	IsActive  bool   `json:"isActive"`
+	CreatedAt int64  `json:"createdAt"`
+	UpdatedAt int64  `json:"updatedAt"`
+}
+
+type LoginResponse struct {
+	Token string      `json:"token"`
+	User  UserResponse `json:"user"`
+}

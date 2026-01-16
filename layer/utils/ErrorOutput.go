@@ -57,3 +57,11 @@ func ValidateFeatureFlagStatus(status string) bool {
 	_, found := allowedStatuses[strings.ToUpper(status)]
 	return found
 }
+
+type UserExistsError struct {
+	Email string
+}
+
+func (e *UserExistsError) Error() string {
+	return "user with email " + e.Email + " already exists"
+}
