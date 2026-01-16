@@ -147,28 +147,95 @@ The Feature Flag Backend project is built using the following technologies and p
 -   Deployment: Serverless (AWS Lambda)
 -   Deployment Automation: GitHub Actions
 
+## Authentication
+
+The Feature Flag Backend uses JWT-based authentication. All endpoints (except registration, login, and health check) require authentication via JWT token in the cookie header.
+
+### User Registration and Login
+
+-   `POST /users/register` - Register a new user (no authentication required)
+-   `POST /users/login` - Login and receive JWT token (no authentication required)
+
+### Authentication Flow
+
+1. Register a user via `POST /users/register`
+2. Login via `POST /users/login` to receive a JWT token
+3. Include the JWT token in the `Cookie` header for subsequent requests:
+   ```
+   Cookie: rds-session-staging=<JWT_TOKEN>
+   ```
+
+## Role-Based Access Control (RBAC)
+
+The system implements role-based access control with three roles:
+
+### Roles
+
+-   **ADMIN**: Full access to all operations
+-   **DEVELOPER**: Can create/update feature flags and manage user mappings, read-only user management
+-   **VIEWER**: Read-only access to feature flags and own user mappings
+
+### Permission Matrix
+
+| Operation | ADMIN | DEVELOPER | VIEWER |
+|-----------|-------|-----------|--------|
+| Create Feature Flag | ✅ | ✅ | ❌ |
+| Update Feature Flag | ✅ | ✅ | ❌ |
+| Read Feature Flag | ✅ | ✅ | ✅ |
+| Create User Mapping | ✅ | ✅ | ❌ |
+| Update User Mapping | ✅ | ✅ | ❌ |
+| Read User Mapping | ✅ | ✅ | ✅ (own only) |
+| Read User | ✅ | ✅ | ✅ (own only) |
+| Update User | ✅ | ❌ | ❌ (own profile only) |
+
+### Resource Ownership
+
+- Users can access their own resources (feature flag mappings, profile)
+- ADMIN can access all resources
+- Non-ADMIN users cannot access other users' resources
+
 ## API Endpoints
 
 The API endpoints available in the Feature Flag Backend project are as follows:
 
--   GET `/feature-flags` to get all the feature flags
--   POST `/feature-flags` to create a feature flag
--   GET `/feature-flags/{flagId}` to get the feature flag with an ID
--   PATCH `/feature-flags/{flagId}` to update a feature flag
--   GET `/users/{userId}/feature-flags/{flagId}` to get a feature flag details for a user
--   GET `/users/{userId}/feature-flags/` to get all feature flag details for a user
--   POST `/users/{userId}/feature-flags/{flagId}` to create a feature flag for a user
--   PATCH `/users/{userId}/feature-flags/{flagId}` to update a feature flag for a user
--   OPTIONS `/` to serve all the preflight requests made by the browser
--   GET `/health-check` to know uptime of the system
--   POST `/reset-limit` to update the counter of the rate limiting logic (`requestLimit`) ddb table
--   PATCH `/mark-concurrency-zero` this is used to make the concurrency of all other lambdas to zero
+### Feature Flag Management
+-   `GET /feature-flags` - Get all feature flags (Requires: READ_FEATURE_FLAG)
+-   `POST /feature-flags` - Create a feature flag (Requires: CREATE_FEATURE_FLAG - ADMIN, DEVELOPER)
+-   `GET /feature-flags/{flagId}` - Get feature flag by ID (Requires: READ_FEATURE_FLAG)
+-   `PATCH /feature-flags/{flagId}` - Update a feature flag (Requires: UPDATE_FEATURE_FLAG - ADMIN, DEVELOPER)
+
+### User Feature Flag Mappings
+-   `GET /users/{userId}/feature-flags/{flagId}` - Get feature flag details for a user (Requires: READ_USER_MAPPING + ownership)
+-   `GET /users/{userId}/feature-flags/` - Get all feature flag details for a user (Requires: READ_USER_MAPPING + ownership)
+-   `POST /users/{userId}/feature-flags/{flagId}` - Create a feature flag mapping for a user (Requires: CREATE_USER_MAPPING + ownership - ADMIN, DEVELOPER)
+-   `PATCH /users/{userId}/feature-flags/{flagId}` - Update a feature flag mapping for a user (Requires: UPDATE_USER_MAPPING + ownership - ADMIN, DEVELOPER)
+
+### User Management
+-   `GET /users/{userId}` - Get user by ID (Requires: READ_USER + ownership)
+-   `PUT /users/{userId}` - Update user profile (Requires: UPDATE_USER + ownership, role changes require ADMIN)
+
+### System Endpoints
+-   `OPTIONS /` - Serve all preflight requests made by the browser
+-   `GET /health-check` - Check system uptime (no authentication required)
+-   `POST /reset-limit` - Update the counter of the rate limiting logic (`requestLimit`) ddb table
+-   `PATCH /mark-concurrency-zero` - Set the concurrency of all other lambdas to zero
 
 For more detailed information about the API contracts, please refer to the [API contract](./openapi.yaml).
 
 ## Data Model
 
-The Feature Flag Backend project uses DynamoDB as the database. The data model consists of two main entities:
+The Feature Flag Backend project uses DynamoDB as the database. The data model consists of the following entities:
+
+### User
+- id (string) **Partition key**
+- email (string) **Global Secondary Index (email-index)**
+- passwordHash (string)
+- role (string) - ADMIN, DEVELOPER, or VIEWER
+- createdAt (number)
+- createdBy (string)
+- updatedAt (number)
+- updatedBy (string)
+- isActive (boolean)
 
 ### FeatureFlag 
 - id (string) **Partition key**
@@ -180,10 +247,9 @@ The Feature Flag Backend project uses DynamoDB as the database. The data model c
 - updatedBy (string)
 - status (string)
 
-
 ### FeatureFlagUserMapping
-- userId (string) **Global Secondary Index**
-- flagId (string) **Partition key** 
+- userId (string) **Partition key**
+- flagId (string) **Sort key**
 - status (string)
 - createdAt (number)
 - createdBy (string)
@@ -191,7 +257,7 @@ The Feature Flag Backend project uses DynamoDB as the database. The data model c
 - updatedBy (string)
 
 ### requestLimit
-- limitType (string) (partitionKey) 
+- limitType (string) **Partition key**
 - limitValue (number)
 
 ## Deployment instructions 
