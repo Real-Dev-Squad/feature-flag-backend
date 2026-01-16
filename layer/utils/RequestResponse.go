@@ -2,7 +2,7 @@ package utils
 
 type UpdateFeatureFlagRequest struct {
 	Status string `json:"status" validate:"required"`
-	UserId string `json:"userId" validate:"required"`
+	UserId string `json:"userId"` // Optional - will be set from authenticated user context
 }
 
 type CreateFeatureFlagRequest struct {
@@ -24,12 +24,12 @@ type FeatureFlagResponse struct {
 
 type CreateFeatureFlagUserMappingRequest struct {
 	Status string `json:"status" validate:"required"`
-	UserId string `json:"userId" validate:"required"`
+	UserId string `json:"userId"` // Optional - will be set from authenticated user context
 }
 
 type UpdateFeatureFlagUserMappingRequest struct {
 	Status string `json:"status" validate:"required"`
-	UserId string `json:"userId" validate:"required"`
+	UserId string `json:"userId"` // Optional - will be set from authenticated user context
 }
 
 type FeatureFlagUserMappingResponse struct {

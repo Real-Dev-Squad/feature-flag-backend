@@ -70,7 +70,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return corsResponse, err
 	}
 
-	// Use enhanced middleware with user verification (Week 2 migration)
+	// Use enhanced middleware with user verification and RBAC (Week 3)
 	jwtResponse, userContext, err := jwt.JWTMiddlewareWithUserVerification()(req)
 	if err != nil || jwtResponse.StatusCode != http.StatusOK {
 		return jwtResponse, err
@@ -78,6 +78,13 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 
 	if userContext == nil {
 		return utils.ClientError(http.StatusUnauthorized, "User context not available")
+	}
+
+	// Check permission: CREATE_FEATURE_FLAG (Week 3 RBAC)
+	permResponse, err := utils.RequirePermission(userContext, utils.PermissionCreateFeatureFlag)
+	if err != nil || permResponse.StatusCode != http.StatusOK {
+		permResponse.Headers = middleware.GetCORSHeadersV1(req.Headers)
+		return permResponse, err
 	}
 
 	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
