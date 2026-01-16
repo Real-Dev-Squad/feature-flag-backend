@@ -100,10 +100,23 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return corsResponse, err
 	}
 
-	jwtResponse, _, err := jwt.JWTMiddleware()(request)
+	// Use enhanced middleware with user verification and RBAC (Week 3)
+	jwtResponse, userContext, err := jwt.JWTMiddlewareWithUserVerification()(request)
 	if err != nil || jwtResponse.StatusCode != http.StatusOK {
 		return jwtResponse, err
 	}
+
+	if userContext == nil {
+		return utils.ClientError(http.StatusUnauthorized, "User context not available")
+	}
+
+	// Check permission: UPDATE_FEATURE_FLAG (Week 3 RBAC)
+	permResponse, err := utils.RequirePermission(userContext, utils.PermissionUpdateFeatureFlag)
+	if err != nil || permResponse.StatusCode != http.StatusOK {
+		permResponse.Headers = middleware.GetCORSHeadersV1(request.Headers)
+		return permResponse, err
+	}
+
 	corsHeaders := middleware.GetCORSHeadersV1(request.Headers)
 
 	updateFeatureFlagRequest := utils.UpdateFeatureFlagRequest{}
@@ -117,13 +130,17 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	if err := validate.Struct(&updateFeatureFlagRequest); err != nil {
-		errorMessage := "Check the request body passed status and userId are required."
+		errorMessage := "Check the request body passed status is required."
 		response := events.APIGatewayProxyResponse{
 			Body:       errorMessage,
 			StatusCode: http.StatusBadRequest,
+			Headers:    corsHeaders,
 		}
 		return response, nil
 	}
+
+	// Use userId from authenticated user context (Week 2 migration)
+	updateFeatureFlagRequest.UserId = userContext.UserId
 
 	found := utils.ValidateFeatureFlagStatus(updateFeatureFlagRequest.Status)
 	if !found {

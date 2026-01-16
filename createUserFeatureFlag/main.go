@@ -64,12 +64,33 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return corsResponse, err
 	}
 
-	jwtResponse, _, err := jwt.JWTMiddleware()(req)
+	// Use enhanced middleware with user verification and RBAC (Week 3)
+	jwtResponse, userContext, err := jwt.JWTMiddlewareWithUserVerification()(req)
 	if err != nil || jwtResponse.StatusCode != http.StatusOK {
 		return jwtResponse, err
 	}
 
+	if userContext == nil {
+		return utils.ClientError(http.StatusUnauthorized, "User context not available")
+	}
+
+	// Check permission: CREATE_USER_MAPPING (Week 3 RBAC)
+	permResponse, err := utils.RequirePermission(userContext, utils.PermissionCreateUserMapping)
+	if err != nil || permResponse.StatusCode != http.StatusOK {
+		permResponse.Headers = middleware.GetCORSHeadersV1(req.Headers)
+		return permResponse, err
+	}
+
 	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
+
+	// Check if user can access this resource (own resources or ADMIN)
+	if !utils.CanAccessUserResource(userContext, userId) {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusForbidden,
+			Body:       "You can only manage your own feature flag mappings",
+			Headers:    corsHeaders,
+		}, nil
+	}
 
 	var requestBody utils.CreateFeatureFlagUserMappingRequest
 	err = json.Unmarshal([]byte(req.Body), &requestBody)

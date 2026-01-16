@@ -21,9 +21,17 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return corsResponse, err
 	}
 
-	response, _, err := jwt.JWTMiddleware()(req)
-	if err != nil || response.StatusCode != http.StatusOK {
-		return response, err
+	// Use enhanced middleware with user verification and RBAC (Week 3)
+	jwtResponse, userContext, err := jwt.JWTMiddlewareWithUserVerification()(req)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
+		return jwtResponse, err
+	}
+
+	// Check permission: READ_FEATURE_FLAG
+	permResponse, err := utils.RequirePermission(userContext, utils.PermissionReadFeatureFlag)
+	if err != nil || permResponse.StatusCode != http.StatusOK {
+		permResponse.Headers = middleware.GetCORSHeadersV1(req.Headers)
+		return permResponse, err
 	}
 
 	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
@@ -56,7 +64,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return serverErrorResponse, nil
 	}
 
-	response = events.APIGatewayProxyResponse{
+	response := events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Headers:    corsHeaders,
 		Body:       string(jsonResponse),

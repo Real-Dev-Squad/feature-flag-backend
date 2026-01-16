@@ -62,14 +62,31 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return corsResponse, err
 	}
 
-	response, _, err := jwt.JWTMiddleware()(req)
-	if err != nil || response.StatusCode != http.StatusOK {
-		return response, err
+	// Use enhanced middleware with user verification and RBAC (Week 3)
+	jwtResponse, userContext, err := jwt.JWTMiddlewareWithUserVerification()(req)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
+		return jwtResponse, err
+	}
+
+	// Check permission: READ_USER_MAPPING (Week 3 RBAC)
+	permResponse, err := utils.RequirePermission(userContext, utils.PermissionReadUserMapping)
+	if err != nil || permResponse.StatusCode != http.StatusOK {
+		permResponse.Headers = middleware.GetCORSHeadersV1(req.Headers)
+		return permResponse, err
 	}
 
 	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
 
 	userId := req.PathParameters["userId"]
+	
+	// Check if user can access this resource (own resources or ADMIN)
+	if !utils.CanAccessUserResource(userContext, userId) {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusForbidden,
+			Body:       "You can only access your own feature flag mappings",
+			Headers:    corsHeaders,
+		}, nil
+	}
 
 	flagId := req.PathParameters["flagId"]
 

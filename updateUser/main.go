@@ -116,9 +116,14 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return corsResponse, err
 	}
 
-	response, userIdFromToken, err := jwt.JWTMiddleware()(req)
-	if err != nil || response.StatusCode != http.StatusOK {
-		return response, err
+	// Use enhanced middleware with user verification and RBAC (Week 3)
+	jwtResponse, userContext, err := jwt.JWTMiddlewareWithUserVerification()(req)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
+		return jwtResponse, err
+	}
+
+	if userContext == nil {
+		return utils.ClientError(http.StatusUnauthorized, "User context not available")
 	}
 
 	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
@@ -128,6 +133,43 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		log.Println("userId is required")
 		clientErrorResponse, _ := utils.ClientError(http.StatusBadRequest, "userId is required")
 		return clientErrorResponse, nil
+	}
+
+	// Check permission: UPDATE_USER (Week 3 RBAC)
+	// Only ADMIN can update other users, users can update themselves
+	if userId != userContext.UserId && userContext.Role != utils.ROLE_ADMIN {
+		// Check if trying to update role (only ADMIN can do this)
+		var tempRequest UpdateUserRequest
+		json.Unmarshal([]byte(req.Body), &tempRequest)
+		if tempRequest.Role != "" {
+			return events.APIGatewayProxyResponse{
+				StatusCode: http.StatusForbidden,
+				Body:       "Only ADMIN can update user roles",
+				Headers:    corsHeaders,
+			}, nil
+		}
+	}
+
+	// Check if user can access this resource (own resources or ADMIN)
+	if !utils.CanAccessUserResource(userContext, userId) {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusForbidden,
+			Body:       "You can only update your own profile",
+			Headers:    corsHeaders,
+		}, nil
+	}
+
+	// For non-ADMIN users updating themselves, restrict role updates
+	if userId == userContext.UserId && userContext.Role != utils.ROLE_ADMIN {
+		var tempRequest UpdateUserRequest
+		json.Unmarshal([]byte(req.Body), &tempRequest)
+		if tempRequest.Role != "" && tempRequest.Role != userContext.Role {
+			return events.APIGatewayProxyResponse{
+				StatusCode: http.StatusForbidden,
+				Body:       "You cannot change your own role",
+				Headers:    corsHeaders,
+			}, nil
+		}
 	}
 
 	err = json.Unmarshal([]byte(req.Body), &updateRequest)
@@ -144,7 +186,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		}, nil
 	}
 
-	user, err := updateUser(ctx, db, userId, updateRequest, userIdFromToken)
+	user, err := updateUser(ctx, db, userId, updateRequest, userContext.UserId)
 	if err != nil {
 		log.Printf("Error while updating user: %v", err)
 		return utils.ServerError(err)
@@ -177,7 +219,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return utils.ServerError(err)
 	}
 
-	response = events.APIGatewayProxyResponse{
+	response := events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Headers:    corsHeaders,
 		Body:       string(responseBody),

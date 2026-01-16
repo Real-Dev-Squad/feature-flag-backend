@@ -56,9 +56,14 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return corsResponse, err
 	}
 
-	response, _, err := jwt.JWTMiddleware()(req)
-	if err != nil || response.StatusCode != http.StatusOK {
-		return response, err
+	// Use enhanced middleware with user verification and RBAC (Week 3)
+	jwtResponse, userContext, err := jwt.JWTMiddlewareWithUserVerification()(req)
+	if err != nil || jwtResponse.StatusCode != http.StatusOK {
+		return jwtResponse, err
+	}
+
+	if userContext == nil {
+		return utils.ClientError(http.StatusUnauthorized, "User context not available")
 	}
 
 	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
@@ -70,8 +75,21 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return clientErrorResponse, nil
 	}
 
-	// TODO: Add role-based access control in Week 3
-	// Users can only view their own profile unless they're ADMIN
+	// Check permission: READ_USER (Week 3 RBAC)
+	permResponse, err := utils.RequirePermission(userContext, utils.PermissionReadUser)
+	if err != nil || permResponse.StatusCode != http.StatusOK {
+		permResponse.Headers = corsHeaders
+		return permResponse, err
+	}
+
+	// Check if user can access this resource (own resources or ADMIN)
+	if !utils.CanAccessUserResource(userContext, userId) {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusForbidden,
+			Body:       "You can only view your own profile",
+			Headers:    corsHeaders,
+		}, nil
+	}
 
 	user, err := getUserById(ctx, db, userId)
 	if err != nil {
@@ -104,7 +122,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return serverErrorResponse, nil
 	}
 
-	response = events.APIGatewayProxyResponse{
+	response := events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Headers:    corsHeaders,
 		Body:       string(jsonResponse),
