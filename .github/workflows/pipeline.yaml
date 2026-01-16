@@ -14,13 +14,13 @@ jobs:
     name: Prepare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v3.x
+        uses: rlespinasse/github-slug-action@v5
       - name: Prepare Outputs
         id: prepare-step
         run: |
-          echo "::set-output name=branch_name::${GITHUB_REF_SLUG}";
+          echo "branch_name=${GITHUB_REF_SLUG}" >> $GITHUB_OUTPUT
     outputs:
       branch_name: ${{ steps.prepare-step.outputs.branch_name }}
 
@@ -29,13 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ needs.prepare.outputs.branch_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25.1'
-      - uses: actions/setup-python@v2
-      - uses: aws-actions/setup-sam@v1
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Setup SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
 
       - name: Build resources
         run: sam build --template ${SAM_TEMPLATE}
@@ -46,7 +52,7 @@ jobs:
           PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           PIPELINE_EXECUTION_ROLE: ${{ secrets.PIPELINE_EXECUTION_ROLE }}
           REGION: ${{ secrets.REGION }}
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
@@ -65,7 +71,7 @@ jobs:
             --s3-bucket ${ARTIFACTS_BUCKET} \
             --region ${REGION} \
             --output-template-file packaged.yaml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: packaged.yaml
           path: packaged.yaml
@@ -75,10 +81,16 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ needs.prepare.outputs.branch_name }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v2
-      - uses: aws-actions/setup-sam@v1
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Setup SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - uses: actions/download-artifact@v6
         with:
           name: packaged.yaml
 
@@ -88,7 +100,7 @@ jobs:
           PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           PIPELINE_EXECUTION_ROLE: ${{ secrets.PIPELINE_EXECUTION_ROLE }}
           REGION: ${{ secrets.REGION }}
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}

@@ -85,26 +85,33 @@ func (j *JWTUtils) initialize() error {
 		}
 	}
 
+	log.Printf("Attempting to fetch public key from SSM parameter: %s (Environment: %s)", parameterName, envConfig.Environment)
 	publicKeyString, err := getPublicKeyFromParameterStore(parameterName)
 	if err != nil {
+		log.Printf("Failed to get public key from SSM: %v", err)
 		return err
 	}
-
+	publicKeyString = strings.TrimSpace(publicKeyString)
+	
 	block, _ := pem.Decode([]byte(publicKeyString))
 	if block == nil {
+		log.Printf("Failed to decode PEM block from public key. First 100 chars: %s", publicKeyString[:min(100, len(publicKeyString))])
 		return errors.New("internal server error")
 	}
 
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
+		log.Printf("Failed to parse PKIX public key: %v", err)
 		return fmt.Errorf("internal server error")
 	}
 
 	rsaPublicKey, ok := pub.(*rsa.PublicKey)
 	if !ok {
+		log.Printf("Public key is not an RSA public key")
 		return errors.New("internal server error")
 	}
 
+	log.Printf("Successfully initialized JWT utils with public key")
 	j.publicKey = rsaPublicKey
 	return nil
 }
@@ -115,6 +122,7 @@ func getPublicKeyFromParameterStore(parameterName string) (string, error) {
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
+		log.Printf("Failed to load AWS config: %v", err)
 		return "", err
 	}
 
@@ -126,10 +134,24 @@ func getPublicKeyFromParameterStore(parameterName string) (string, error) {
 
 	result, err := svc.GetParameter(ctx, input)
 	if err != nil {
+		log.Printf("Failed to get parameter %s from SSM: %v", parameterName, err)
 		return "", err
 	}
 
-	return *result.Parameter.Value, nil
+	if result.Parameter == nil || result.Parameter.Value == nil {
+		log.Printf("Parameter %s exists but has no value", parameterName)
+		return "", errors.New("parameter has no value")
+	}
+
+	value := strings.TrimSpace(*result.Parameter.Value)
+	return value, nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func (j *JWTUtils) ValidateToken(tokenString string) (jwt.MapClaims, error) {

@@ -87,6 +87,15 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
       Events:
         Preflight:
           Type: Api
@@ -105,7 +114,24 @@ Resources:
       Architectures:
         - x86_64  
       Layers:
-        - !Ref SharedLayer  
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -124,7 +150,22 @@ Resources:
       Architectures:
         - x86_64  
       Layers:
-        - !Ref SharedLayer  
+        - !Ref SharedLayer
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:PutFunctionConcurrency
+              Resource:
+                - !GetAtt CorsLambda.Arn
+                - !GetAtt CreateFeatureFlagFunction.Arn
+                - !GetAtt CreateUserFeatureFlagFunction.Arn
+                - !GetAtt GetFeatureFlagFunction.Arn
+                - !GetAtt GetUserFeatureFlagFunction.Arn
+                - !GetAtt GetAllFeatureFlagFunction.Arn
+                - !GetAtt UpdateFeatureFlagFunction.Arn
+                - !GetAtt GetUserFeatureFlagsFunction.Arn
       Events:
         CatchAll:
           Type: Api
@@ -143,7 +184,16 @@ Resources:
       Architectures:
         - x86_64  
       Layers:
-        - !Ref SharedLayer  
+        - !Ref SharedLayer
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
       Events:
         CatchAll:
           Type: Api
@@ -163,6 +213,23 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -182,6 +249,23 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -201,6 +285,23 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -220,6 +321,23 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -239,6 +357,23 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -258,6 +393,23 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -277,6 +429,23 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
@@ -296,6 +465,23 @@ Resources:
         - x86_64
       Layers:
         - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: featureFlag
+        - DynamoDBCrudPolicy:
+            TableName: featureFlagUserMapping
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
       Events:
         CatchAll:
           Type: Api
