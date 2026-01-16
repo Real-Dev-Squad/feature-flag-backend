@@ -70,9 +70,14 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		return corsResponse, err
 	}
 
-	jwtResponse, _, err := jwt.JWTMiddleware()(req)
+	// Use enhanced middleware with user verification (Week 2 migration)
+	jwtResponse, userContext, err := jwt.JWTMiddlewareWithUserVerification()(req)
 	if err != nil || jwtResponse.StatusCode != http.StatusOK {
 		return jwtResponse, err
+	}
+
+	if userContext == nil {
+		return utils.ClientError(http.StatusUnauthorized, "User context not available")
 	}
 
 	corsHeaders := middleware.GetCORSHeadersV1(req.Headers)
@@ -85,10 +90,15 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 
 	if err := validate.Struct(&createFeatureFlagRequest); err != nil {
 		return events.APIGatewayProxyResponse{
-			Body:       "Check the request body passed name, description and userId are required.",
+			Body:       "Check the request body passed name and description are required.",
 			StatusCode: http.StatusBadRequest,
+			Headers:    corsHeaders,
 		}, nil
 	}
+
+	// Use userId from authenticated user context (Week 2 migration)
+	// Override any userId in request body with authenticated user
+	createFeatureFlagRequest.UserId = userContext.UserId
 
 	featureFlag, err := createFeatureFlag(ctx, db, createFeatureFlagRequest)
 	if err != nil {

@@ -156,6 +156,38 @@ func ProcessGetFeatureFlagByHashKey(attributeName string, attributeValue string)
 	return featureFlagResponse, nil
 }
 
+func GetUserById(ctx context.Context, userId string) (*models.User, error) {
+	db := CreateDynamoDB()
+
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(utils.USER_TABLE_NAME),
+		Key: map[string]types.AttributeValue{
+			"id": &types.AttributeValueMemberS{
+				Value: userId,
+			},
+		},
+	}
+
+	result, err := db.GetItem(ctx, input)
+	if err != nil {
+		utils.DdbError(err)
+		return nil, err
+	}
+
+	if len(result.Item) == 0 {
+		return nil, nil
+	}
+
+	var user models.User
+	err = UnmarshalMap(result.Item, &user)
+	if err != nil {
+		log.Println(err, " is the error while converting to user object")
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func AddUserFeatureFlagMapping(featureFlagUserMappings []models.FeatureFlagUserMapping) ([]models.FeatureFlagUserMapping, error) {
 	ctx := context.TODO()
 	db := CreateDynamoDB()

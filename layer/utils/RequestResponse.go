@@ -8,7 +8,7 @@ type UpdateFeatureFlagRequest struct {
 type CreateFeatureFlagRequest struct {
 	FlagName    string `json:"name" validate:"required"`
 	Description string `json:"description" validate:"required"`
-	UserId      string `json:"userId" validate:"required"`
+	UserId      string `json:"userId"` // Optional - will be set from authenticated user context
 }
 
 type FeatureFlagResponse struct {
