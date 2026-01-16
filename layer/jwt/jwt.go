@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"feature-flag-backend/layer/database"
 	"feature-flag-backend/layer/utils"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -260,6 +261,13 @@ func handleMiddlewareResponse(statusCode int, message string) (events.APIGateway
 	}, "", nil
 }
 
+// UserContextResponse holds the user context and response
+type UserContextResponse struct {
+	Response events.APIGatewayProxyResponse
+	UserContext *utils.UserContext
+	Error    error
+}
+
 func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, string, error) {
 	return func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, string, error) {
 		jwtUtils, err := GetInstance()
@@ -319,6 +327,124 @@ func JWTMiddleware() func(req events.APIGatewayProxyRequest) (events.APIGatewayP
 			return handleMiddlewareResponse(http.StatusUnauthorized, "Unauthorized")
 		}
 
+		// Return userId (backward compatible)
+		// Role extraction is available in JWTMiddlewareWithUserVerification
 		return handleMiddlewareResponse(http.StatusOK, userId)
+	}
+}
+
+// handleMiddlewareResponseWithContext is a helper for the enhanced middleware
+func handleMiddlewareResponseWithContext(statusCode int, message string) (events.APIGatewayProxyResponse, *utils.UserContext, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: statusCode,
+		Body:       message,
+	}, nil, nil
+}
+
+// JWTMiddlewareWithUserVerification is an enhanced middleware that verifies user exists in database
+// and returns UserContext. This is for Week 2 migration to internal authentication.
+func JWTMiddlewareWithUserVerification() func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, *utils.UserContext, error) {
+	return func(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, *utils.UserContext, error) {
+		jwtUtils, err := GetInstance()
+		if err != nil {
+			log.Printf("Failed to get JWTUtils instance: %v", err)
+			resp, _, _ := handleMiddlewareResponseWithContext(http.StatusInternalServerError, "Internal server error")
+			return resp, nil, err
+		}
+
+		cookie := ""
+		for key, val := range req.Headers {
+			if strings.ToLower(key) == "cookie" {
+				cookie = val
+				break
+			}
+		}
+		if cookie == "" {
+			resp, _, _ := handleMiddlewareResponseWithContext(http.StatusUnauthorized, "Unauthenticated")
+			return resp, nil, nil
+		}
+
+		envConfig, _ := LoadEnvConfig()
+		cookieName := envConfig.SessionCookieName
+		if cookieName == "" {
+			switch envConfig.Environment {
+			case utils.PROD:
+				cookieName = utils.SESSION_COOKIE_NAME_PROD
+			case utils.DEV:
+				cookieName = utils.SESSION_COOKIE_NAME_DEV
+			default:
+				cookieName = utils.SESSION_COOKIE_NAME_LOCAL
+			}
+		}
+
+		var jwtToken string
+		cookies := strings.Split(cookie, ";")
+		for _, c := range cookies {
+			c = strings.TrimSpace(c)
+			if strings.HasPrefix(c, cookieName+"=") {
+				jwtToken = strings.TrimPrefix(c, cookieName+"=")
+				break
+			}
+		}
+
+		if jwtToken == "" {
+			resp, _, _ := handleMiddlewareResponseWithContext(http.StatusUnauthorized, "Unauthenticated")
+			return resp, nil, nil
+		}
+
+		claims, err := jwtUtils.ValidateToken(jwtToken)
+		if err != nil {
+			log.Printf("Token validation failed: %v", err)
+			resp, _, _ := handleMiddlewareResponseWithContext(http.StatusUnauthorized, "Invalid token")
+			return resp, nil, nil
+		}
+
+		userId, err := jwtUtils.ExtractClaim(claims, "userId")
+		if err != nil {
+			resp, _, _ := handleMiddlewareResponseWithContext(http.StatusUnauthorized, "Unauthorized")
+			return resp, nil, nil
+		}
+
+		// Extract role from token
+		role, _ := jwtUtils.ExtractClaim(claims, "role")
+		if role == "" {
+			role = utils.ROLE_VIEWER
+		}
+
+		// Verify user exists in database and is active
+		ctx := context.Background()
+		user, err := database.GetUserById(ctx, userId)
+		if err != nil {
+			log.Printf("Error fetching user from database: %v", err)
+			resp, _, _ := handleMiddlewareResponseWithContext(http.StatusInternalServerError, "Internal server error")
+			return resp, nil, err
+		}
+
+		if user == nil {
+			log.Printf("User not found in database: %s", userId)
+			resp, _, _ := handleMiddlewareResponseWithContext(http.StatusUnauthorized, "User not found")
+			return resp, nil, nil
+		}
+
+		if !user.IsActive {
+			log.Printf("User account is inactive: %s", userId)
+			resp, _, _ := handleMiddlewareResponseWithContext(http.StatusForbidden, "User account is inactive")
+			return resp, nil, nil
+		}
+
+		// Use role from database (source of truth) if it differs from token
+		// This allows role updates without requiring re-login
+		if user.Role != "" {
+			role = user.Role
+		}
+
+		userContext := &utils.UserContext{
+			UserId: userId,
+			Role:   role,
+			Email:  user.Email,
+		}
+
+		resp, _, _ := handleMiddlewareResponseWithContext(http.StatusOK, "")
+		return resp, userContext, nil
 	}
 }
