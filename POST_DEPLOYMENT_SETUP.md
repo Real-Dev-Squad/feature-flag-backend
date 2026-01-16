@@ -139,12 +139,14 @@ YOUR_PUBLIC_KEY_HERE
 
 After creating the tables, test your API:
 
+**Note:** Replace `{YOUR_API_GATEWAY_URL}` with your actual API Gateway endpoint URL. You can find it in the SAM deployment output or AWS Console.
+
 ```bash
 # 1. Health check (should work)
-curl https://j31g91e2fa.execute-api.us-east-1.amazonaws.com/Prod/health-check
+curl https://{YOUR_API_GATEWAY_URL}/Prod/health-check
 
 # 2. Get feature flags (should work now)
-curl -X GET "https://j31g91e2fa.execute-api.us-east-1.amazonaws.com/Prod/feature-flags/" \
+curl -X GET "https://{YOUR_API_GATEWAY_URL}/Prod/feature-flags/" \
   -H "Cookie: rds-session-staging=YOUR_JWT_TOKEN" \
   -H "Origin: https://test.realdevsquad.com"
 ```
@@ -181,7 +183,7 @@ curl -X GET "https://j31g91e2fa.execute-api.us-east-1.amazonaws.com/Prod/feature
 
 **Cause:** Code is trying to unmarshal a nil response from DynamoDB (table doesn't exist or item doesn't exist)
 
-**Solution:** 
+**Solution:**
 1. Create the `requestLimit` table
 2. Initialize it with the default value (see step 4 above)
 
@@ -214,8 +216,8 @@ Run this to set up everything:
 # 2. Verify tables
 aws dynamodb list-tables --region us-east-1
 
-# 3. Test API
-curl https://j31g91e2fa.execute-api.us-east-1.amazonaws.com/Prod/health-check
+# 3. Test API (replace {YOUR_API_GATEWAY_URL} with your actual endpoint)
+curl https://{YOUR_API_GATEWAY_URL}/Prod/health-check
 ```
 
 ---

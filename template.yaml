@@ -88,8 +88,14 @@ Resources:
       Layers:
         - !Ref SharedLayer
       Policies:
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
       Events:
         Preflight:
           Type: Api
@@ -114,8 +120,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
@@ -145,7 +157,15 @@ Resources:
             - Effect: Allow
               Action:
                 - lambda:PutFunctionConcurrency
-              Resource: '*'
+              Resource:
+                - !GetAtt CorsLambda.Arn
+                - !GetAtt CreateFeatureFlagFunction.Arn
+                - !GetAtt CreateUserFeatureFlagFunction.Arn
+                - !GetAtt GetFeatureFlagFunction.Arn
+                - !GetAtt GetUserFeatureFlagFunction.Arn
+                - !GetAtt GetAllFeatureFlagFunction.Arn
+                - !GetAtt UpdateFeatureFlagFunction.Arn
+                - !GetAtt GetUserFeatureFlagsFunction.Arn
       Events:
         CatchAll:
           Type: Api
@@ -166,8 +186,14 @@ Resources:
       Layers:
         - !Ref SharedLayer
       Policies:
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
       Events:
         CatchAll:
           Type: Api
@@ -192,8 +218,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
@@ -222,8 +254,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
@@ -252,8 +290,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
@@ -282,8 +326,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
@@ -312,8 +362,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
@@ -342,8 +398,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
@@ -372,8 +434,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
@@ -402,8 +470,14 @@ Resources:
             TableName: featureFlag
         - DynamoDBCrudPolicy:
             TableName: featureFlagUserMapping
-        - DynamoDBCrudPolicy:
-            TableName: requestLimit
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
         - SSMParameterReadPolicy:
             ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
         - SSMParameterReadPolicy:
