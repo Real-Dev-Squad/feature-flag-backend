@@ -57,7 +57,28 @@ else
 fi
 echo ""
 
-# Table 3: requestLimit
+# Table 3: user
+if ! table_exists "user"; then
+  echo "Creating table: user"
+  aws dynamodb create-table \
+    --table-name user \
+    --attribute-definitions \
+      AttributeName=id,AttributeType=S \
+      AttributeName=email,AttributeType=S \
+    --key-schema \
+      AttributeName=id,KeyType=HASH \
+    --global-secondary-indexes \
+      "[{\"IndexName\": \"email-index\", \"KeySchema\": [{\"AttributeName\": \"email\", \"KeyType\": \"HASH\"}], \"Projection\": {\"ProjectionType\": \"ALL\"}}]" \
+    --billing-mode PAY_PER_REQUEST \
+    --region "$REGION" \
+    --no-cli-pager
+  echo "✅ Created user table"
+else
+  echo "⏭️  Table user already exists, skipping creation"
+fi
+echo ""
+
+# Table 4: requestLimit
 if ! table_exists "requestLimit"; then
   echo "Creating table: requestLimit"
   aws dynamodb create-table \
@@ -83,6 +104,10 @@ aws dynamodb wait table-exists \
 
 aws dynamodb wait table-exists \
   --table-name featureFlagUserMapping \
+  --region "$REGION"
+
+aws dynamodb wait table-exists \
+  --table-name user \
   --region "$REGION"
 
 aws dynamodb wait table-exists \
@@ -119,6 +144,7 @@ echo ""
 echo "Tables created:"
 echo "  - featureFlag"
 echo "  - featureFlagUserMapping"
+echo "  - user"
 echo "  - requestLimit (with initial value)"
 echo ""
 echo "You can now test your API endpoints!"

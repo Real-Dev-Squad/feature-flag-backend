@@ -29,7 +29,8 @@ var (
 )
 
 type JWTUtils struct {
-	publicKey *rsa.PublicKey
+	publicKey  *rsa.PublicKey
+	privateKey *rsa.PrivateKey
 }
 
 type EnvConfig struct {
@@ -113,7 +114,65 @@ func (j *JWTUtils) initialize() error {
 
 	log.Printf("Successfully initialized JWT utils with public key")
 	j.publicKey = rsaPublicKey
+
+	privateKeyParameterName := ""
+	switch envConfig.Environment {
+	case utils.PROD:
+		privateKeyParameterName = utils.RDS_BACKEND_PRIVATE_KEY_NAME_PROD
+	case utils.DEV:
+		privateKeyParameterName = utils.RDS_BACKEND_PRIVATE_KEY_NAME_DEV
+	default:
+		privateKeyParameterName = utils.RDS_BACKEND_PRIVATE_KEY_NAME_LOCAL
+	}
+
+	privateKeyString, err := getPublicKeyFromParameterStore(privateKeyParameterName)
+	if err == nil {
+		privateKeyString = strings.TrimSpace(privateKeyString)
+		block, _ := pem.Decode([]byte(privateKeyString))
+		if block != nil {
+			privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+			if err == nil {
+				if rsaPrivateKey, ok := privateKey.(*rsa.PrivateKey); ok {
+					j.privateKey = rsaPrivateKey
+					log.Printf("Successfully loaded private key for token generation")
+				}
+			}
+		}
+	} else {
+		log.Printf("Private key not available (this is OK if only validation is needed): %v", err)
+	}
+
 	return nil
+}
+
+func (j *JWTUtils) GenerateToken(userId string, role string) (string, error) {
+	if j == nil {
+		return "", errors.New("internal server error")
+	}
+
+	if j.privateKey == nil {
+		return "", errors.New("private key not available for token generation")
+	}
+
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"userId": userId,
+		"role":   role,
+		"iat":    now.Unix(),
+		"exp":    now.Add(24 * 365 * time.Hour).Unix(), // 1 year expiration
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	tokenString, err := token.SignedString(j.privateKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	return tokenString, nil
+}
+
+func (j *JWTUtils) SetPrivateKey(privateKey *rsa.PrivateKey) {
+	j.privateKey = privateKey
 }
 
 func getPublicKeyFromParameterStore(parameterName string) (string, error) {

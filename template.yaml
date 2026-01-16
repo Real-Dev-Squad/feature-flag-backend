@@ -488,3 +488,147 @@ Resources:
           Properties:
             Path: /users/{userId}/feature-flags/{flagId}
             Method: PATCH
+
+  RegisterUserFunction:
+    Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: registerUser/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: user
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PRIVATE_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PRIVATE_KEY
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /users/register
+            Method: POST
+
+  LoginUserFunction:
+    Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: loginUser/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: user
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PRIVATE_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PRIVATE_KEY
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /users/login
+            Method: POST
+
+  GetUserByIdFunction:
+    Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: getUserById/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: user
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /users/{userId}
+            Method: GET
+
+  UpdateUserFunction:
+    Type: 'AWS::Serverless::Function'
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: updateUser/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: user
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requestLimit"
+        - SSMParameterReadPolicy:
+            ParameterName: PROD_RDS_BACKEND_PUBLIC_KEY
+        - SSMParameterReadPolicy:
+            ParameterName: STAGING_RDS_BACKEND_PUBLIC_KEY
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /users/{userId}
+            Method: PUT
